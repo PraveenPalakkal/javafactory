@@ -1,0 +1,438 @@
+2016-07-27 09:16:52,691 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["web.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 09:16:52,693 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "web.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\presentation\\web.xml.ftl">
+2016-07-27 09:16:52,695 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 09:16:52,696 INFO main [CustomProjectNewWizard] - <AddWebNature creation Starts>
+2016-07-27 09:16:53,799 INFO main [CustomProjectNewWizard] - <AddWebNature creation Starts>
+2016-07-27 09:16:53,811 INFO main [CustomProjectNewWizard] - <<WORKSPACE : > D:/runtime-EclipseApplication>
+2016-07-27 09:16:53,812 INFO main [CustomProjectNewWizard] - <Application Name : StrutsAuthenticationService>
+2016-07-27 09:16:53,812 INFO main [CustomProjectNewWizard] - <Template Path : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates>
+2016-07-27 09:16:53,812 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,812 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/ApplicationLayer/Spring/com/app/customer/util>
+2016-07-27 09:16:53,812 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/util>
+2016-07-27 09:16:53,814 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 09:16:53,815 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["applicationContext.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 09:16:53,816 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "applicationContext.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\ApplicationLayer\\Spring\\applicationContext.xml.ftl">
+2016-07-27 09:16:53,817 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 09:16:53,817 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,817 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/common>
+2016-07-27 09:16:53,817 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 09:16:53,832 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,832 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Struts>
+2016-07-27 09:16:53,832 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 09:16:53,865 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,865 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/ApplicationLayer/RestService/src/com/app/customer/service/ICustomer.java>
+2016-07-27 09:16:53,865 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/service/ICustomer.java>
+2016-07-27 09:16:53,868 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 09:16:53,870 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["RestService.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 09:16:53,870 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "RestService.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\ApplicationLayer\\RestService\\src\\com\\app\\customer\\service\\RestService.java.ftl">
+2016-07-27 09:16:53,896 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 09:16:53,896 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,897 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Rest Service>
+2016-07-27 09:16:53,897 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 09:16:53,920 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,920 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/dao/CustomerDaoImpl.java>
+2016-07-27 09:16:53,920 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/dao/CustomerDaoImpl.java>
+2016-07-27 09:16:53,922 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,922 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/dao/CustomerDao.java>
+2016-07-27 09:16:53,922 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/dao/CustomerDao.java>
+2016-07-27 09:16:53,923 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,923 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/util/HibernateUtil.java>
+2016-07-27 09:16:53,923 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/util/HibernateUtil.java>
+2016-07-27 09:16:53,925 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,925 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/CustomerApplication.hbm.xml>
+2016-07-27 09:16:53,925 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/CustomerApplication.hbm.xml>
+2016-07-27 09:16:53,927 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 09:16:53,928 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["hibernate.cfg.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 09:16:53,928 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "hibernate.cfg.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\DataLayer\\Hibernate\\hibernate.cfg.ftl">
+2016-07-27 09:16:53,930 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 09:16:53,930 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,930 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Hibernate>
+2016-07-27 09:16:53,930 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 09:16:53,943 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,943 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/MySQL>
+2016-07-27 09:16:53,943 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 09:16:53,946 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,946 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common>
+2016-07-27 09:16:53,946 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 09:16:53,972 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 09:16:53,972 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Rest Service>
+2016-07-27 09:16:53,972 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 09:16:53,988 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 09:16:53,989 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["Customer.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 09:16:53,990 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "Customer.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\src\\com\\app\\customer\\vo\\Customer.java.ftl">
+2016-07-27 09:16:53,993 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 09:16:53,993 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 09:16:53,994 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["web.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 09:16:53,994 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "web.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\service\\web.xml.ftl">
+2016-07-27 09:16:54,004 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:20:32,214 INFO main [ToolBarHandler] - <Selection is --------------- <empty selection>>
+2016-07-27 12:20:53,492 INFO main [PresentationFrameworkSelectorWizard] - <
+Inside getnext page of PresentationTypeSelectorWizard>
+2016-07-27 12:20:53,492 DEBUG main [PresentationFrameworkSelectorWizard] - <fm-->Select>
+2016-07-27 12:20:55,553 INFO main [PresentationFrameworkSelectorWizard] - <
+Inside getnext page of PresentationTypeSelectorWizard>
+2016-07-27 12:20:55,553 DEBUG main [PresentationFrameworkSelectorWizard] - <fm-->Struts>
+2016-07-27 12:20:55,553 DEBUG main [PresentationFrameworkSelectorWizard] - <Inside getnextStrutsSelect>
+2016-07-27 12:20:56,344 INFO main [PresentationFrameworkSelectorWizard] - <
+Inside getnext page of PresentationTypeSelectorWizard>
+2016-07-27 12:20:56,344 DEBUG main [PresentationFrameworkSelectorWizard] - <fm-->Struts>
+2016-07-27 12:20:56,344 DEBUG main [PresentationFrameworkSelectorWizard] - <Inside getnextStrutsSelect>
+2016-07-27 12:20:56,354 INFO main [ApplicationFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-07-27 12:20:58,444 INFO main [ApplicationFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-07-27 12:20:58,454 INFO main [PersistenceFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-07-27 12:20:59,185 INFO main [PersistenceFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-07-27 12:20:59,195 INFO main [DataBaseSelectorWizard] - <
+Inside getnext page of DataBaseSelectorWizard>
+2016-07-27 12:21:19,215 INFO main [DataBaseSelectorWizard] - <
+Inside getnext page of DataBaseSelectorWizard>
+2016-07-27 12:21:20,036 INFO main [DataBaseSelectorWizard] - <
+Inside getnext page of DataBaseSelectorWizard>
+2016-07-27 12:21:20,036 INFO main [CrosscuttingConcernsSelectorWizard] - <
+Inside getnext page of CrosscuttingConcernsSelectorWizard>
+2016-07-27 12:21:23,356 INFO main [CrosscuttingConcernsSelectorWizard] - <
+Inside getnext page of CrosscuttingConcernsSelectorWizard>
+2016-07-27 12:21:23,356 INFO main [SourceControlSelectorWizard] - <
+Inside getnext page of SourceControlSelectorWizard>
+2016-07-27 12:21:23,867 INFO main [SourceControlSelectorWizard] - <
+Inside getnext page of SourceControlSelectorWizard>
+2016-07-27 12:21:23,867 INFO main [BuildToolSelectorWizard] - <
+Inside getnext page of BuildToolSelectorWizard>
+2016-07-27 12:21:24,467 INFO main [BuildToolSelectorWizard] - <
+Inside getnext page of BuildToolSelectorWizard>
+2016-07-27 12:21:24,467 INFO main [ContinuousIntegrationSelectorWizard] - <
+Inside getnext page of ContinuousIntegrationSelectorWizard>
+2016-07-27 12:21:25,088 INFO main [ContinuousIntegrationSelectorWizard] - <
+Inside getnext page of ContinuousIntegrationSelectorWizard>
+2016-07-27 12:21:26,078 INFO main [CustomProjectNewWizard] - <Project creation starts..>
+2016-07-27 12:21:26,078 DEBUG main [CustomProjectNewWizard] - <Web service project name---->>>StrutsAuthenticationService>
+2016-07-27 12:21:28,909 INFO main [CustomProjectNewWizard] - <<WORKSPACE : > D:/runtime-EclipseApplication>
+2016-07-27 12:21:28,909 INFO main [CustomProjectNewWizard] - <WORKSPACE : D:/runtime-EclipseApplication>
+2016-07-27 12:21:28,909 INFO main [CustomProjectNewWizard] - <Application Name : StrutsAuthentication>
+2016-07-27 12:21:28,909 INFO main [CustomProjectNewWizard] - <Template Path : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates>
+2016-07-27 12:21:28,970 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:28,970 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/images>
+2016-07-27 12:21:28,970 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/images>
+2016-07-27 12:21:28,990 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:28,990 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Authentication&Authorization>
+2016-07-27 12:21:28,990 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:29,000 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,000 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/common/Authentication&Authorization/LdapCridencials.properties>
+2016-07-27 12:21:29,000 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/src/LdapCridencials.properties>
+2016-07-27 12:21:29,020 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,020 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/common/Authentication&Authorization/Login_style.css>
+2016-07-27 12:21:29,020 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/css/Login_style.css>
+2016-07-27 12:21:29,020 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,020 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/StrutsAuthentication>
+2016-07-27 12:21:29,020 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:29,030 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,030 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Struts/common/src/Authentication.properties>
+2016-07-27 12:21:29,030 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/src/Authentication.properties>
+2016-07-27 12:21:29,040 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,040 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/common>
+2016-07-27 12:21:29,040 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:29,050 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,050 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Struts/common/css>
+2016-07-27 12:21:29,050 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/css/>
+2016-07-27 12:21:29,050 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,050 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/images>
+2016-07-27 12:21:29,050 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/images/>
+2016-07-27 12:21:29,170 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:29,170 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Struts/common/pages>
+2016-07-27 12:21:29,170 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/pages/>
+2016-07-27 12:21:29,180 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:29,380 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["index.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:29,380 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "index.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Struts\\common\\index.ftl">
+2016-07-27 12:21:29,540 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:29,990 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:30,011 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["CustomerBean.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:30,011 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "CustomerBean.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Struts\\Rest\\src\\com\\app\\customer\\mbean\\CustomerBean.ftl">
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Struts/Rest/src/ApplicationResources.properties>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/src/ApplicationResources.properties>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Struts/Rest/src/ApplicationResources_en.properties>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/src/ApplicationResources_en.properties>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:30,041 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["struts.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:30,041 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "struts.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Struts\\Rest\\src\\struts.ftl">
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Struts>
+2016-07-27 12:21:30,041 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:30,081 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,081 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common>
+2016-07-27 12:21:30,111 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:30,141 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,141 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Hibernate>
+2016-07-27 12:21:30,141 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:30,161 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,161 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/MySQL>
+2016-07-27 12:21:30,161 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:30,191 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,191 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Rest Service>
+2016-07-27 12:21:30,191 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:30,461 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,461 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common>
+2016-07-27 12:21:30,461 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:30,491 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:30,491 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Rest Service>
+2016-07-27 12:21:30,491 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:31,591 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:31,625 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["Customer.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:31,625 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "Customer.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\src\\com\\app\\customer\\vo\\Customer.java.ftl">
+2016-07-27 12:21:31,625 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:31,825 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:31,825 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/common/src/com/app/framework>
+2016-07-27 12:21:31,825 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthentication/src/com/app/framework>
+2016-07-27 12:21:31,855 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:31,855 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["web.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:31,865 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "web.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\presentation\\web.xml.ftl">
+2016-07-27 12:21:31,865 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:31,865 INFO main [CustomProjectNewWizard] - <AddWebNature creation Starts>
+2016-07-27 12:21:32,145 INFO main [CustomProjectNewWizard] - <AddWebNature creation Starts>
+2016-07-27 12:21:32,155 INFO main [CustomProjectNewWizard] - <<WORKSPACE : > D:/runtime-EclipseApplication>
+2016-07-27 12:21:32,155 INFO main [CustomProjectNewWizard] - <Application Name : StrutsAuthenticationService>
+2016-07-27 12:21:32,155 INFO main [CustomProjectNewWizard] - <Template Path : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates>
+2016-07-27 12:21:32,155 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,155 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/ApplicationLayer/Spring/com/app/customer/util>
+2016-07-27 12:21:32,155 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/util>
+2016-07-27 12:21:32,185 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:32,185 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["applicationContext.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:32,185 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "applicationContext.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\ApplicationLayer\\Spring\\applicationContext.xml.ftl">
+2016-07-27 12:21:32,185 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:32,185 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,185 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/common>
+2016-07-27 12:21:32,185 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:32,195 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,195 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Struts>
+2016-07-27 12:21:32,195 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:32,225 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,225 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/ApplicationLayer/RestService/src/com/app/customer/service/ICustomer.java>
+2016-07-27 12:21:32,225 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/service/ICustomer.java>
+2016-07-27 12:21:32,235 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:32,235 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["RestService.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:32,235 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "RestService.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\ApplicationLayer\\RestService\\src\\com\\app\\customer\\service\\RestService.java.ftl">
+2016-07-27 12:21:32,235 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:32,235 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,235 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Rest Service>
+2016-07-27 12:21:32,235 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/dao/CustomerDaoImpl.java>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/dao/CustomerDaoImpl.java>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/dao/CustomerDao.java>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/dao/CustomerDao.java>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/util/HibernateUtil.java>
+2016-07-27 12:21:32,255 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/com/app/customer/util/HibernateUtil.java>
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/CustomerApplication.hbm.xml>
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/src/CustomerApplication.hbm.xml>
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:32,265 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["hibernate.cfg.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:32,265 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "hibernate.cfg.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\DataLayer\\Hibernate\\hibernate.cfg.ftl">
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Hibernate>
+2016-07-27 12:21:32,265 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:32,305 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,305 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/MySQL>
+2016-07-27 12:21:32,305 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:32,315 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,315 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common>
+2016-07-27 12:21:32,315 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:32,335 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-07-27 12:21:32,335 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Rest Service>
+2016-07-27 12:21:32,335 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/StrutsAuthenticationService/WebContent/WEB-INF/lib/>
+2016-07-27 12:21:32,355 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:32,355 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["Customer.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:32,355 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "Customer.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\src\\com\\app\\customer\\vo\\Customer.java.ftl">
+2016-07-27 12:21:32,355 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-07-27 12:21:32,355 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-07-27 12:21:32,355 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["web.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-07-27 12:21:32,355 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "web.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\service\\web.xml.ftl">
+2016-07-27 12:21:32,355 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:07:38,196 INFO main [ToolBarHandler] - <Selection is --------------- <empty selection>>
+2016-08-03 10:07:50,198 INFO main [PresentationFrameworkSelectorWizard] - <
+Inside getnext page of PresentationTypeSelectorWizard>
+2016-08-03 10:07:50,198 DEBUG main [PresentationFrameworkSelectorWizard] - <fm-->Select>
+2016-08-03 10:07:52,084 INFO main [PresentationFrameworkSelectorWizard] - <
+Inside getnext page of PresentationTypeSelectorWizard>
+2016-08-03 10:07:52,085 DEBUG main [PresentationFrameworkSelectorWizard] - <fm-->Spring>
+2016-08-03 10:07:52,085 DEBUG main [PresentationFrameworkSelectorWizard] - <Inside getnextSpringSelect>
+2016-08-03 10:07:52,815 INFO main [PresentationFrameworkSelectorWizard] - <
+Inside getnext page of PresentationTypeSelectorWizard>
+2016-08-03 10:07:52,815 DEBUG main [PresentationFrameworkSelectorWizard] - <fm-->Spring>
+2016-08-03 10:07:52,815 DEBUG main [PresentationFrameworkSelectorWizard] - <Inside getnextSpringSelect>
+2016-08-03 10:07:52,820 INFO main [ApplicationFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-08-03 10:07:55,719 INFO main [ApplicationFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-08-03 10:07:55,723 INFO main [PersistenceFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-08-03 10:07:56,519 INFO main [PersistenceFrameworkSelectorWizard] - <Inside getnext page of ApplicationFrameworkSelectorWizard>
+2016-08-03 10:07:56,523 INFO main [DataBaseSelectorWizard] - <
+Inside getnext page of DataBaseSelectorWizard>
+2016-08-03 10:07:59,947 INFO main [DataBaseSelectorWizard] - <
+Inside getnext page of DataBaseSelectorWizard>
+2016-08-03 10:08:00,534 INFO main [DataBaseSelectorWizard] - <
+Inside getnext page of DataBaseSelectorWizard>
+2016-08-03 10:08:00,540 INFO main [CrosscuttingConcernsSelectorWizard] - <
+Inside getnext page of CrosscuttingConcernsSelectorWizard>
+2016-08-03 10:08:01,582 INFO main [CrosscuttingConcernsSelectorWizard] - <
+Inside getnext page of CrosscuttingConcernsSelectorWizard>
+2016-08-03 10:08:01,591 INFO main [SourceControlSelectorWizard] - <
+Inside getnext page of SourceControlSelectorWizard>
+2016-08-03 10:08:01,822 INFO main [SourceControlSelectorWizard] - <
+Inside getnext page of SourceControlSelectorWizard>
+2016-08-03 10:08:01,833 INFO main [BuildToolSelectorWizard] - <
+Inside getnext page of BuildToolSelectorWizard>
+2016-08-03 10:08:02,006 INFO main [BuildToolSelectorWizard] - <
+Inside getnext page of BuildToolSelectorWizard>
+2016-08-03 10:08:02,012 INFO main [ContinuousIntegrationSelectorWizard] - <
+Inside getnext page of ContinuousIntegrationSelectorWizard>
+2016-08-03 10:08:02,262 INFO main [ContinuousIntegrationSelectorWizard] - <
+Inside getnext page of ContinuousIntegrationSelectorWizard>
+2016-08-03 10:08:03,094 INFO main [CustomProjectNewWizard] - <Project creation starts..>
+2016-08-03 10:08:03,094 DEBUG main [CustomProjectNewWizard] - <Web service project name---->>>springService>
+2016-08-03 10:08:09,303 INFO main [CustomProjectNewWizard] - <<WORKSPACE : > D:/runtime-EclipseApplication>
+2016-08-03 10:08:09,303 INFO main [CustomProjectNewWizard] - <WORKSPACE : D:/runtime-EclipseApplication>
+2016-08-03 10:08:09,303 INFO main [CustomProjectNewWizard] - <Application Name : spring>
+2016-08-03 10:08:09,303 INFO main [CustomProjectNewWizard] - <Template Path : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates>
+2016-08-03 10:08:09,365 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:09,365 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/images>
+2016-08-03 10:08:09,365 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/images>
+2016-08-03 10:08:09,448 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:09,448 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Spring MVC/common/css>
+2016-08-03 10:08:09,448 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/css>
+2016-08-03 10:08:09,470 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:09,756 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["customerList.jsp.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:09,758 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "customerList.jsp.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Spring MVC\\common\\jsp\\customerList.jsp.ftl">
+2016-08-03 10:08:09,881 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:09,881 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:09,881 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["customerAdd.jsp.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:09,881 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "customerAdd.jsp.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Spring MVC\\common\\jsp\\customerAdd.jsp.ftl">
+2016-08-03 10:08:09,886 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:09,886 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:09,886 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["customerEdit.jsp.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:09,887 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "customerEdit.jsp.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Spring MVC\\common\\jsp\\customerEdit.jsp.ftl">
+2016-08-03 10:08:09,893 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:09,893 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:09,897 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["${projectName}-servlet.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:09,898 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "${projectName}-servlet.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Spring MVC\\common\\WEB-INF\\${projectName}-servlet.xml.ftl">
+2016-08-03 10:08:09,899 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:09,899 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:09,899 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["web.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:09,900 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "web.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Spring MVC\\common\\WEB-INF\\web.xml.ftl">
+2016-08-03 10:08:09,902 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:09,903 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:09,903 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Spring MVC/common/src>
+2016-08-03 10:08:09,903 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/src/>
+2016-08-03 10:08:11,446 DEBUG main [CustomProjectNewWizard] - <Test--->>>>>
+2016-08-03 10:08:11,447 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:11,455 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["CustomerController.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:11,481 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "CustomerController.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\Spring MVC\\Pojo\\src\\com\\app\\customer\\controller\\CustomerController.ftl">
+2016-08-03 10:08:11,532 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:11,532 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:11,532 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/MVC>
+2016-08-03 10:08:11,532 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/WEB-INF/lib/>
+2016-08-03 10:08:11,559 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:11,559 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/common>
+2016-08-03 10:08:11,559 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/WEB-INF/lib/>
+2016-08-03 10:08:12,012 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:12,012 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Hibernate>
+2016-08-03 10:08:12,012 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/WEB-INF/lib/>
+2016-08-03 10:08:12,566 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:12,566 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/MySQL>
+2016-08-03 10:08:12,566 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/WEB-INF/lib/>
+2016-08-03 10:08:12,746 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:12,746 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common>
+2016-08-03 10:08:12,746 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/WEB-INF/lib/>
+2016-08-03 10:08:13,639 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:13,639 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Rest Service>
+2016-08-03 10:08:13,639 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/WebContent/WEB-INF/lib/>
+2016-08-03 10:08:14,793 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:14,806 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["Customer.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:14,808 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "Customer.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\src\\com\\app\\customer\\vo\\Customer.java.ftl">
+2016-08-03 10:08:14,822 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:14,829 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:14,829 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/common/src/com/app/framework>
+2016-08-03 10:08:14,829 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/spring/src/com/app/framework>
+2016-08-03 10:08:14,902 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:14,920 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["web.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:14,921 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "web.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\presentation\\web.xml.ftl">
+2016-08-03 10:08:14,928 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:14,929 INFO main [CustomProjectNewWizard] - <AddWebNature creation Starts>
+2016-08-03 10:08:15,553 INFO main [CustomProjectNewWizard] - <AddJavaNature creation Starts>
+2016-08-03 10:08:15,570 INFO main [CustomProjectNewWizard] - <<WORKSPACE : > D:/runtime-EclipseApplication>
+2016-08-03 10:08:15,571 INFO main [CustomProjectNewWizard] - <Application Name : springService>
+2016-08-03 10:08:15,571 INFO main [CustomProjectNewWizard] - <Template Path : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates>
+2016-08-03 10:08:15,571 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,571 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/PresentationLayer/Spring MVC/common/src>
+2016-08-03 10:08:15,571 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/src/>
+2016-08-03 10:08:15,592 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,592 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/common>
+2016-08-03 10:08:15,593 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/>
+2016-08-03 10:08:15,623 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,623 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/MVC>
+2016-08-03 10:08:15,623 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/>
+2016-08-03 10:08:15,634 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,634 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/ApplicationLayer/Spring/com/app/customer/util>
+2016-08-03 10:08:15,634 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/src/com/app/customer/util>
+2016-08-03 10:08:15,679 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:15,681 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["CustomerImpl.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:15,682 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "CustomerImpl.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\ApplicationLayer\\Spring\\com\\app\\customer\\service\\CustomerImpl.java.ftl">
+2016-08-03 10:08:15,685 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:15,685 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,685 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/ApplicationLayer/Spring/com/app/customer/service/ICustomer.java>
+2016-08-03 10:08:15,685 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/src/com/app/customer/service/ICustomer.java>
+2016-08-03 10:08:15,688 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:15,689 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["applicationContext.xml.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:15,690 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "applicationContext.xml.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\ApplicationLayer\\Spring\\applicationContext.xml.ftl">
+2016-08-03 10:08:15,691 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:15,691 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,691 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Spring/common>
+2016-08-03 10:08:15,691 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/>
+2016-08-03 10:08:15,711 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,711 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/dao/CustomerDaoImpl.java>
+2016-08-03 10:08:15,711 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/src/com/app/customer/dao/CustomerDaoImpl.java>
+2016-08-03 10:08:15,732 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,733 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/dao/CustomerDao.java>
+2016-08-03 10:08:15,733 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/src/com/app/customer/dao/CustomerDao.java>
+2016-08-03 10:08:15,734 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,734 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/com/app/customer/util/HibernateUtil.java>
+2016-08-03 10:08:15,734 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/src/com/app/customer/util/HibernateUtil.java>
+2016-08-03 10:08:15,737 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,737 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/DataLayer/Hibernate/CustomerApplication.hbm.xml>
+2016-08-03 10:08:15,737 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/src/CustomerApplication.hbm.xml>
+2016-08-03 10:08:15,743 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:15,744 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["hibernate.cfg.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:15,744 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "hibernate.cfg.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\DataLayer\\Hibernate\\hibernate.cfg.ftl">
+2016-08-03 10:08:15,748 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:15,749 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,749 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/Hibernate>
+2016-08-03 10:08:15,749 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/>
+2016-08-03 10:08:15,766 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,766 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/MySQL>
+2016-08-03 10:08:15,766 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/>
+2016-08-03 10:08:15,788 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,788 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common/log4j-1.2.16.jar>
+2016-08-03 10:08:15,788 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/log4j-1.2.16.jar>
+2016-08-03 10:08:15,791 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,791 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common/HJSF-Framework.jar>
+2016-08-03 10:08:15,791 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/HJSF-Framework.jar>
+2016-08-03 10:08:15,793 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,793 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common/HexLogger.jar>
+2016-08-03 10:08:15,793 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/HexLogger.jar>
+2016-08-03 10:08:15,795 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,795 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common/jstl-1.2.jar>
+2016-08-03 10:08:15,795 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/jstl-1.2.jar>
+2016-08-03 10:08:15,798 INFO main [CustomProjectNewWizard] - <Inside writeOther file----->>
+2016-08-03 10:08:15,798 INFO main [CustomProjectNewWizard] - <SCR FILE : D:/SystemSoftware/eclipse-jee-mars-2-RC2-win32/eclipse/Java Software Factory/Templates/lib/common/paranamer-2.6.1.jar>
+2016-08-03 10:08:15,798 INFO main [CustomProjectNewWizard] - <DEST FILE : D:/runtime-EclipseApplication/springService/lib/paranamer-2.6.1.jar>
+2016-08-03 10:08:15,800 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:15,802 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["Customer.java.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:15,803 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "Customer.java.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\common\\src\\com\\app\\customer\\vo\\Customer.java.ftl">
+2016-08-03 10:08:15,813 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
+2016-08-03 10:08:15,814 INFO main [CustomProjectNewWizard] - <copyTemplate method starts>
+2016-08-03 10:08:15,814 DEBUG main [freemarker.cache] - <Could not find template in cache, creating new one; id=["Common.classpath.ftl"["en_US",Cp1252,parsed] ]>
+2016-08-03 10:08:15,815 DEBUG main [freemarker.cache] - <Compiling FreeMarker template "Common.classpath.ftl"["en_US",Cp1252,parsed]  from "D:\\SystemSoftware\\eclipse-jee-mars-2-RC2-win32\\eclipse\\Java Software Factory\\Templates\\PresentationLayer\\CommonClasspath\\Common.classpath.ftl">
+2016-08-03 10:08:15,818 INFO main [CustomProjectNewWizard] - <copyTemplate method ends>
