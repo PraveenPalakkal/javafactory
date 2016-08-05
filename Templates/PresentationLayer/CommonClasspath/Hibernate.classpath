@@ -1,3 +1,0 @@
-<classpathentry kind="lib" path="lib/hibernate-3.0.5.jar"/>
-<classpathentry kind="lib" path="lib/hibernate3.jar"/>
-<classpathentry kind="lib" path="lib/javax-transaction-api.jar"/>
