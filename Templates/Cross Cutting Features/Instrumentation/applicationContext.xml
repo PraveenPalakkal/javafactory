@@ -1,0 +1,12 @@
+	<bean id="Monitor" class="com.app.framework.instrumentation.Monitor" />
+
+	<bean id="customerServiceProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+
+		<property name="target" ref="CustomerDao" />
+
+		<property name="interceptorNames">
+			<list>
+				<value>Monitor</value>
+			</list>
+		</property>
+	</bean>
