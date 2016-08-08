@@ -1,0 +1,3 @@
+<classpathentry kind="lib" path="lib/HexNotification.jar"/>
+<classpathentry kind="lib" path="lib/HexCore.jar"/>
+<classpathentry kind="lib" path="lib/mail.jar"/>
