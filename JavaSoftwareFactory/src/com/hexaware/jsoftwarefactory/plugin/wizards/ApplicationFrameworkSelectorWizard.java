@@ -7,7 +7,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Group;
 
 import com.hexaware.framework.logger.LogFactory;
@@ -65,6 +64,7 @@ public class ApplicationFrameworkSelectorWizard extends WizardPage {
 		btnSpring = new Button(grpApplicationFramework, SWT.RADIO);
 		btnSpring.setBounds(43, 44, 138, 16);
 		btnSpring.setText("Spring");
+		btnSpring.setSelection(true);
 		btnSpring.addSelectionListener(new SelectionListener() {
 
 			@Override
@@ -90,17 +90,6 @@ public class ApplicationFrameworkSelectorWizard extends WizardPage {
 			public void widgetSelected(SelectionEvent arg0) {
 				btnRestService.setSelection(false);
 				getContainer().updateButtons();
-				/*if (btnEjb.getSelection() == true) {
-					log.debug("BtnEjb selection" + btnEjb.getSelection());
-					MessageBox messageDialog = new MessageBox(getShell(),
-							SWT.OK);
-					messageDialog.setText("Alert!!");
-					messageDialog
-							.setMessage("It is under construction. Please select any other framework");
-					if (messageDialog.open() == SWT.OK) {
-						return;
-					}
-				}*/
 			}
 
 			@Override
@@ -119,82 +108,16 @@ public class ApplicationFrameworkSelectorWizard extends WizardPage {
 		btnSoapService.setEnabled(true);
 		btnSoapService
 				.setText("SOAP");
-		btnSoapService.addSelectionListener(new SelectionListener() {
-
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				if (btnSoapService.getSelection() == true) {
-					MessageBox messageDialog = new MessageBox(getShell(),
-							SWT.OK);
-					messageDialog.setText("Alert!!");
-					messageDialog
-							.setMessage("It is under construction. Please deselect SOAP service to proceed further.");
-					if (messageDialog.open() == SWT.OK) {
-						return;
-					}
-				}
-
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) {
-				// TODO Auto-generated method stub
-
-			}
-		});
+		
 
 		btnRestService = new Button(grpServiceLayer, SWT.CHECK);
 		btnRestService.setBounds(47, 88, 129, 16);
 		btnRestService.setText("REST");
-		//btnRestService.setSelection(true);
-		/*btnRestService.addSelectionListener(new SelectionListener() {
-
-			@Override
-			public void widgetSelected(SelectionEvent arg0) {
-				if (btnRestService.getSelection() == false) {
-					MessageBox messageDialog = new MessageBox(getShell(),
-							SWT.OK);
-					messageDialog.setText("Alert!!");
-					messageDialog.setMessage("Please select REST service");
-					if (messageDialog.open() == SWT.OK) {
-						return;
-					}
-				}
-
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent arg0) {
-				// TODO Auto-generated method stub
-
-			}
-		});*/
 	}
 
 	@Override
 	public IWizardPage getNextPage() {
 		log.info("Inside getnext page of ApplicationFrameworkSelectorWizard");
-		/*if (btnSpring.getSelection()) {
-			if(!btnRestService.getSelection())
-			{
-			MessageBox messageDialog = new MessageBox(getShell(),
-					SWT.OK);
-			messageDialog.setText("Alert!!");
-			messageDialog.setMessage("Please select REST service");
-			if (messageDialog.open() == SWT.OK) {
-				return this;
-			}
-			}
-			else
-			{
-				return super.getNextPage();
-			}
-		}
-		else if ((btnSpring.getSelection()
-				&& btnRestService.getSelection()) || btnEjb.getSelection()) {
-			return super.getNextPage();
-		}*/
-		
 		return super.getNextPage();
 	}
 }

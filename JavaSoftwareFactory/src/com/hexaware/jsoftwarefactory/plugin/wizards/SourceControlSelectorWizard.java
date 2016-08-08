@@ -1,5 +1,6 @@
 package com.hexaware.jsoftwarefactory.plugin.wizards;
 
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -12,6 +13,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import com.hexaware.framework.logger.LogFactory;
 import com.hexaware.framework.logger.Logger;
 import com.hexaware.jsoftwarefactory.plugin.dialogs.ConnectionDetailsDialog;
+
 import org.eclipse.swt.widgets.Group;
 
 public class SourceControlSelectorWizard extends WizardPage {
@@ -31,7 +33,7 @@ public class SourceControlSelectorWizard extends WizardPage {
 	}
 
 	/**
-	 * Create contents of the wizard.
+	 * Create contents of the wizard.     
 	 * 
 	 * @param parent
 	 */
@@ -69,9 +71,9 @@ public class SourceControlSelectorWizard extends WizardPage {
 					ConnectionDetailsDialog con = new ConnectionDetailsDialog(
 							getShell());
 					int invokeDialog = con.open();
-					if (invokeDialog == 1)
+					if (invokeDialog == IDialogConstants.OK_ID)
 						System.out
-								.println("Connection Settings cancelled by the user ");
+								.println("");
 				}
 			}
 
@@ -89,9 +91,9 @@ public class SourceControlSelectorWizard extends WizardPage {
 					ConnectionDetailsDialog con = new ConnectionDetailsDialog(
 							getShell());
 					int invokeDialog = con.open();
-					if (invokeDialog == 1)
+					if (invokeDialog == IDialogConstants.OK_ID)
 						System.out
-								.println("Connection Settings cancelled by the user ");
+								.println("");
 				}
 			}
 
@@ -109,9 +111,9 @@ public class SourceControlSelectorWizard extends WizardPage {
 					ConnectionDetailsDialog con = new ConnectionDetailsDialog(
 							getShell());
 					int invokeDialog = con.open();
-					if (invokeDialog == 1)
+					if (invokeDialog == IDialogConstants.OK_ID)
 						System.out
-								.println("Connection Settings cancelled by the user ");
+								.println("");
 				}
 			}
 
@@ -125,7 +127,7 @@ public class SourceControlSelectorWizard extends WizardPage {
 	@Override
 	public IWizardPage getNextPage() {
 		log.info("\nInside getnext page of SourceControlSelectorWizard");
-		if (btnGithub.getSelection() || btnStarteam.getSelection()|| btnSvn.getSelection()) {
+		/*if (btnGithub.getSelection() || btnStarteam.getSelection()|| btnSvn.getSelection()) {
 			MessageBox messageDialog = new MessageBox(getShell(), SWT.OK);
 			messageDialog.setText("Alert!!");
 			messageDialog
@@ -133,10 +135,12 @@ public class SourceControlSelectorWizard extends WizardPage {
 			if (messageDialog.open() == SWT.OK) {
 				return this;
 			}
-		} else if (btnNone.getSelection() == true) {
+		} else if (btnNone.getSelection()) {
 			return super.getNextPage();
 		}
 
-		return this;
+		return this;*/
+		
+		return super.getNextPage();
 	}
 }

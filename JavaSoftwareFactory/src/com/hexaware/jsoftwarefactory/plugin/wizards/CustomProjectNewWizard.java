@@ -42,13 +42,14 @@ import org.eclipse.wst.common.project.facet.core.ProjectFacetsManager;
 import com.hexaware.framework.config.ConfigHandler;
 import com.hexaware.framework.logger.LogFactory;
 import com.hexaware.framework.logger.Logger;
+import com.hexaware.jsoftwarefactory.plugin.dialogs.DatabaseConnectionDetailsDialog;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 
 public class CustomProjectNewWizard extends Wizard implements INewWizard,
-		IExecutableExtension, IProjectNature{
+		IExecutableExtension, IProjectNature {
 
 	static Logger log = LogFactory.getLogger("CustomProjectNewWizard");
 
@@ -63,15 +64,23 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 	BuildToolSelectorWizard buildToolSelectorWizard;
 	ContinuousIntegrationSelectorWizard continuousIntegrationSelectorWizard;
 	ReferenceImplementationWizard referenceImplementationWizard;
+	DatabaseConnectionDetailsDialog databaseConnectionDetailsDialog;
 
 	protected IStatus status;
 	private IConfigurationElement _configurationElement;
-	IProject project;
 	IProjectDescription projDesc;
+	IProjectDescription javaProjDesc;
 	IProgressMonitor monitor;
 	URI location;
-	private String projectName = "";
+	private String webProjectName = "";
+	private String earProjectName = "";
+	private String javaProjectName = "";
+	private String ejbProjectName = "";
+	private String serviceProjectName = "";
 	private BufferedReader bufferedReader;
+	private String url;
+	private String userName;
+	private String password;
 
 	public CustomProjectNewWizard() {
 		setWindowTitle("New HexJava Software Factory Project");
@@ -106,7 +115,7 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 				"JSoftware Factory");
 		presentationFrameworkSelectorWizard.setTitle("Presentation Layer");
 		presentationFrameworkSelectorWizard
-				.setDescription("Select the applicaton type and framework below.");
+				.setDescription("Select the application type and framework below.");
 		addPage(presentationFrameworkSelectorWizard);
 		getNextPage(presentationFrameworkSelectorWizard);
 
@@ -168,7 +177,8 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 		referenceImplementationWizard = new ReferenceImplementationWizard(
 				"JSoftware factory");
 		referenceImplementationWizard.setTitle("Reference Implementation");
-		referenceImplementationWizard.setDescription("Select your required options to continue.");
+		referenceImplementationWizard
+				.setDescription("Select your required options to continue.");
 		addPage(referenceImplementationWizard);
 
 	}
@@ -177,25 +187,64 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 	public boolean performFinish() {
 		log.info("Project creation starts..");
 		try {
-			projectName = newProjectWizard.getProjectName();
-			final IProject projectHandle = newProjectWizard.getProjectHandle();
-			URI projectURI = (!newProjectWizard.useDefaults()) ? newProjectWizard
-					.getLocationURI() : null;
-			IWorkspace workspace = ResourcesPlugin.getWorkspace();
-			projDesc = workspace.newProjectDescription(projectHandle.getName());
-			projDesc.setLocationURI(projectURI);
-			createProject(projDesc, projectHandle);
-			project = projectHandle;
-			if (project == null) {
-				return false;
-			}
-			addNatures();
-			BasicNewProjectResourceWizard
-					.updatePerspective(_configurationElement);
-			IResource resour = ResourcesPlugin.getWorkspace().getRoot();
+			url = dataBaseSelectorWizard.getDatabaseConnection().getUrl();
+			userName = dataBaseSelectorWizard.getDatabaseConnection()
+					.getUserName();
+			password = dataBaseSelectorWizard.getDatabaseConnection()
+					.getPassword();
+			if (presentationFrameworkSelectorWizard.getBtnWebApplication()
+					.getSelection()) {
+				if (applicationFrameworkSelectorWizard.getBtnSpring()
+						.getSelection()) {
+					final IProject webProjectHandle = newProjectWizard
+							.getProjectHandle();
+					webProjectName = newProjectWizard.getProjectName();
 
-			resour.refreshLocal(IResource.DEPTH_INFINITE, null);
-			log.info("Project creation ends..");
+					final IProject webServiceProjectHandle = ResourcesPlugin
+							.getWorkspace()
+							.getRoot()
+							.getProject(
+									newProjectWizard.getProjectName()
+											+ "Service");
+					serviceProjectName = webServiceProjectHandle.getProject()
+							.getName();
+					log.debug("Web service project name---->>>"
+							+ serviceProjectName);
+					createWebPresentationProject(webProjectHandle);
+					createWebServiceProject(webServiceProjectHandle);
+				} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+					createEnterpriseProject();
+				}
+
+			} else if (presentationFrameworkSelectorWizard
+					.getBtnDesktopApplication().getSelection()) {
+
+				if (applicationFrameworkSelectorWizard.getBtnSpring()
+						.getSelection()) {
+					final IProject javaProjectHandle = newProjectWizard
+							.getProjectHandle();
+					javaProjectName = newProjectWizard.getProjectName();
+
+					final IProject WebProjectHandle = ResourcesPlugin
+							.getWorkspace()
+							.getRoot()
+							.getProject(
+									newProjectWizard.getProjectName()
+											+ "Service");
+					serviceProjectName = WebProjectHandle.getProject()
+							.getName();
+					log.debug("Web service project name---->>>"
+							+ serviceProjectName);
+					createJavaProject(javaProjectHandle);
+					createWebServiceProject(WebProjectHandle);
+				} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+					createEnterpriseProject();
+				}
+
+			}
+
 		} catch (CoreException e) {
 			e.printStackTrace();
 			log.error("Perform Finish is not exist" + e.getMessage());
@@ -203,10 +252,10 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 		return true;
 	}
 
-	public IStatus isValidName(String projectName) {
+	public IStatus isValidName(String webProjectName) {
 
-		for (int i = 0; i < projectName.length(); i++) {
-			if (Character.isDigit(projectName.charAt(i))) {
+		for (int i = 0; i < webProjectName.length(); i++) {
+			if (Character.isDigit(webProjectName.charAt(i))) {
 				status = new IStatus() {
 
 					@Override
@@ -259,9 +308,9 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 			}
 		}
 
-		int dotLoc = projectName.lastIndexOf('.');
+		int dotLoc = webProjectName.lastIndexOf('.');
 		if (dotLoc != -1) {
-			String ext = projectName.substring(dotLoc + 1);
+			String ext = webProjectName.substring(dotLoc + 1);
 			if (ext.length() > 0) {
 				// setErrorMessage("No extension must be given to a Project
 				// Name");
@@ -272,10 +321,14 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 
 	}
 
-	public void addNatures() {
-		try {
+	/*
+	 * Dynamic Project Nature
+	 */
 
-			IProjectDescription description = project.getDescription();
+	public void addWebNatures(IProject proj) {
+		try {
+			log.info("AddWebNature creation Starts");
+			IProjectDescription description = proj.getDescription();
 			String[] natures = description.getNatureIds();
 			String[] newNatures = new String[natures.length + 5];
 			System.arraycopy(natures, 0, newNatures, 0, natures.length);
@@ -285,17 +338,1304 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 			newNatures[newNatures.length - 2] = com.hexaware.jsoftwarefactory.natures.MyNature.NATURE_ID4;
 			newNatures[newNatures.length - 1] = com.hexaware.jsoftwarefactory.natures.MyNature.NATURE_ID5;
 			description.setNatureIds(newNatures);
-			project.setDescription(description, null);
+			proj.setDescription(description, null);
+
+			System.out.println("AddWebNature creation ends");
 		} catch (CoreException e) {
 			e.printStackTrace();
 			log.error("Natures is not added" + e.getMessage());
 		}
 	}
 
-	void createProject(IProjectDescription description, IProject proj)
+	/*
+	 * Java Project Nature
+	 */
+	public void addJavaNatures(IProject proj) {
+		try {
+			log.info("AddJavaNature creation Starts");
+			IProjectDescription javaDescription = proj.getDescription();
+			String[] javaNatures = javaDescription.getNatureIds();
+			String[] newJavaNatures = new String[javaNatures.length + 2];
+			System.arraycopy(javaNatures, 0, newJavaNatures, 0,
+					javaNatures.length);
+			newJavaNatures[newJavaNatures.length - 2] = com.hexaware.jsoftwarefactory.natures.JavaProjectNature.NATURE_ID1;
+			newJavaNatures[newJavaNatures.length - 1] = com.hexaware.jsoftwarefactory.natures.JavaProjectNature.NATURE_ID2;
+			javaDescription.setNatureIds(newJavaNatures);
+			proj.setDescription(javaDescription, null);
+
+			System.out.println("AddJavaNature creation ends");
+		} catch (CoreException e) {
+			e.printStackTrace();
+			log.error("Natures is not added" + e.getMessage());
+		}
+	}
+
+	private void createJavaProject(IProject proj) throws CoreException {
+
+		try {
+			System.out.println("Inside Create Java Project");
+			URI projectURI = (!newProjectWizard.useDefaults()) ? newProjectWizard
+					.getLocationURI() : null;
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			if (proj == null) {
+				throw new Exception("Application Exception : IProject is null");
+			}
+			javaProjDesc = workspace.newProjectDescription(proj.getName());
+			javaProjDesc.setLocationURI(projectURI);
+			proj.create(javaProjDesc, null);
+			proj.open(IResource.BACKGROUND_REFRESH, null);
+
+			IFacetedProject iFacetedProject = (IFacetedProject) ProjectFacetsManager
+					.create(proj.getProject(), true, null);
+
+			IProjectFacet JAVA_FACET = ProjectFacetsManager
+					.getProjectFacet("jst.java");
+			iFacetedProject.installProjectFacet(JAVA_FACET.getVersion("1.7"),
+					null, monitor);
+
+			addJavaNatures(proj);
+			/*
+			 * Generating Presentation Files from Template
+			 */
+
+			try {
+				IContainer container = (IContainer) proj;
+
+				createFolder(container, "src/com");
+				createFolder(container, "src/com/app");
+				createFolder(container, "src/com/app/customer");
+				createFolder(container, "src/com/app/customer/vo");
+				createFolder(container, "src/com/app/customer/controller");
+
+				log.info("WORKSPACE : ", workspace.getRoot().getLocation()
+						.toString());
+				log.info("WORKSPACE : "
+						+ workspace.getRoot().getLocation().toString());
+				log.info("Application Name : " + javaProjectName);
+				String templatePath = ConfigHandler.getInstance()
+						.getSystemProperty("template.location");
+				log.info("Template Path : " + templatePath);
+
+				Map<String, Object> data = new HashMap<String, Object>();
+				data.put("APP_NAME", "");
+				data.put("projectName", javaProjectName);
+				data.put("serviceProjectName", serviceProjectName);
+				data.put("serverHost", "http://localhost:8080/");
+				data.put("applicationName", javaProjectName);
+				data.put("project", "${project}");
+				data.put("springLib", "");
+				data.put("hibernateLib", "");
+				data.put("restLib", "");
+				data.put("soapLib", "");
+				data.put("EJB_Imports", "");
+				data.put("Stateless", "");
+				data.put("Remote", "");
+				data.put("url", url);
+				data.put("userName", userName);
+				data.put("password", password);
+				data.put("Driver", "");
+				data.put("Dialect", "");
+				data.put("springMvcLib", "");
+				data.put("jsfLib", "");
+				data.put("strutsLib", "");
+				data.put("dataBaseLib", "");
+				data.put("pojoLib", "");
+				data.put("jpaLib", "");
+				data.put("additionalLib", "");
+				data.put("jbossLib", "");
+
+				data.put("Rest_URL", "rest");
+				data.put("Service", "com.app.customer.service.CustomerImpl");
+				data.put("webServiceReferer", "Service/");
+
+				/*
+				 * cross cutting
+				 */
+				data.put("Validation_Call", "");
+				data.put("Validation_CatchEdit", "");
+				data.put("Validation_CatchAdd", "");
+				data.put("Validation_import", "");
+				data.put("Cache_import", "");
+				data.put("Cache_ImplStart", "");
+				data.put("Cache_ImplEnd", "");
+				data.put("Notification_method", "");
+				data.put("Notification_Import", "");
+				data.put("Email_Action", "");
+				data.put("Email_button", "");
+				data.put("AuthenticationAuthorization", "");
+				data.put("Index_onload", "");
+				data.put("Index_form", "");
+				data.put("notemptyerror", "${not empty error}");
+				data.put("error", "${error}");
+				data.put("Jsf_Notification", "");
+				data.put("Jsf_Notification_Import", "");
+				data.put("Jsf_Notification_Object", "");
+				data.put("CallValidation", "JndiLookup.doLookUp(\"Customer\")");
+				data.put("idConvert", "");
+				data.put("emailObjectCreation", "");
+				data.put("emailButton", "");
+				data.put("addButton", "");
+				data.put("emailButtonAction", "");
+				data.put("emailButtonInJavaFx", "");
+				data.put("emailButtonCodeInJavaFx", "");
+				data.put("emailCodeInJavaFx", "");
+				data.put("validationLib", "");
+				data.put("cacheLib", "");
+				data.put("notificationLib", "");
+				data.put("instrumentationLib", "");
+				data.put("AuthenticationLib", "");
+				data.put("parentFXMLLoader", "");
+				data.put("scene", "");
+				data.put("stage", "");
+				data.put("javaFxMainPageImport", "");
+				data.put("AuthenticationFlagset", "true");
+				data.put("customerVo", "Customer");
+				data.put("loginPageNavigation", "");
+				/*
+				 * copying common file
+				 */
+
+				/*
+				 * Cross Cutting features - Validation
+				 */
+				if (crosscuttingConcernsSelectorWizard.getBtnValidation()
+						.getSelection()) {
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Validation", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+					String filePath = templatePath
+							+ "/PresentationLayer/CommonClasspath/Validation.classpath";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("validationLib", value);
+					data.put(
+							"Validation_import",
+							"import com.app.customer.validation.Validation; import com.hjsf.validator.HexValidationException;");
+					data.put("Validation_Call",
+							"new Validation().isCustomerValidate(customer);");
+					data.put("Validation_CatchAdd",
+							"catch (HexValidationException e) "
+									+ "{ infoLabel.setText(e.getMessage()); "
+									+ "return false;}");
+					if (presentationFrameworkSelectorWizard
+							.getComboDesktopAppFramework().getText()
+							.equals("Java FX")) {
+						data.put("idConvert",
+								"Integer.toString(customer.getCustomerid())");
+					} else {
+						data.put("idConvert",
+								"customer.getCustomerid().toString()");
+					}
+					createFolder(container, "src/com/app/customer/validation");
+					if ((!presentationFrameworkSelectorWizard
+							.getComboDesktopAppFramework().getText()
+							.equals("Java Swing") && persistenceFrameworkSelectorWizard
+							.getBtnJpa().getSelection())
+							|| (!presentationFrameworkSelectorWizard
+									.getComboDesktopAppFramework().getText()
+									.equals("Java Swing")
+									&& applicationFrameworkSelectorWizard
+											.getBtnEjb().getSelection()
+									&& persistenceFrameworkSelectorWizard
+											.getBtnHibernate().getSelection() && (!applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection() && !applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection()))) {
+						data.put("customerVo", "CustomerVO");
+					}
+					copyTemplate(
+							templatePath
+									+ "/common/src/com/app/customer/validation/Validation.ftl",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ javaProjectName
+									+ "/src/com/app/customer/validation/Validation.java/",
+							data);
+				}
+
+				/*
+				 * Cross Cutting features - Authentication-Authorization
+				 */
+				if (crosscuttingConcernsSelectorWizard
+						.getBtnAuthenticationAutherization().getSelection()) {
+					/*
+					 * Copying the libraries - Authentication-Authorization
+					 */
+					copyDirectory(templatePath + "/lib/DesktopAuthentication",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ javaProjectName + "/lib/");
+					String filePath = templatePath
+							+ "/PresentationLayer/CommonClasspath/Authentication-Authorization.classpath";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("AuthenticationLib", value);
+					if (presentationFrameworkSelectorWizard
+							.getComboDesktopAppFramework().getText()
+							.equals("Java Swing")) {
+						data.put("AuthenticationFlagset", "false");
+						data.put(
+								"loginPageNavigation",
+								"else { Login login;  try { login = new Login(); login.start(); login.setVisible(true); } catch (InterruptedException e) {"
+										+ "e.printStackTrace();" + "} }");
+						copyDirectory(
+								templatePath
+										+ "/PresentationLayer/Swing/Authentication-Authorization/src",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName + "/src/");
+					}
+					if (presentationFrameworkSelectorWizard
+							.getComboDesktopAppFramework().getText()
+							.equals("Java FX")) {
+						data.put("javaFxMainPageImport",
+								"import com.app.customer.controller.Login;");
+						data.put("parentFXMLLoader",
+								"Parent root = FXMLLoader.load(getClass().getResource(\"/view/Login.fxml\"));");
+						data.put("scene",
+								"Scene scene = new Scene(root,382,243);");
+						data.put("stage", "Login.thisStage=primaryStage;");
+						copyDirectory(
+								templatePath
+										+ "/PresentationLayer/JavaFx/Authentication-Authorization/src",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName + "/src/");
+						createFolder(container, "src/application");
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/common/application/Main.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/src/application/Main.java", data);
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/JavaFx/common/application/application.css",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/src/application/application.css");
+					}
+				} else {
+					if (presentationFrameworkSelectorWizard
+							.getComboDesktopAppFramework().getText()
+							.equals("Java FX")) {
+						data.put("javaFxMainPageImport",
+								"import com.app.customer.controller.CustomerList;");
+						data.put(
+								"parentFXMLLoader",
+								"Parent root = FXMLLoader.load(getClass().getResource(\"/view/CustomerListview.fxml\")); ");
+						data.put("scene",
+								"Scene scene = new Scene(root,1090,706);");
+						data.put("stage",
+								"CustomerList.thisStage=primaryStage;");
+						createFolder(container, "src/application");
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/common/application/Main.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/src/application/Main.java", data);
+
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/JavaFx/common/application/application.css",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/src/application/application.css");
+
+					}
+				}
+
+				/*
+				 * Cross Cutting features - Notification
+				 */
+				if (crosscuttingConcernsSelectorWizard.getBtnNotification()
+						.getSelection()) {
+					/*
+					 * Copying the libraries - Notification
+					 */
+					copyDirectory(templatePath + "/lib/Notification", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+					String filePath = templatePath
+							+ "/PresentationLayer/CommonClasspath/Notification.classpath";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("notificationLib", value);
+					data.put("emailObjectCreation",
+							"EmailNotification emailNotification;");
+					data.put("addButton", "btnAdd.setBounds(413, 406, 74, 30);");
+					data.put("emailButtonAction", "dispose();"
+							+ "emailNotification= new EmailNotification();"
+							+ "emailNotification.setVisible(true);");
+					data.put("emailButton",
+							"btnEmail.setBounds(501, 406, 78, 30);");
+					copyDirectory(templatePath + "/common/src/email", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/src/");
+
+					if (presentationFrameworkSelectorWizard
+							.getComboDesktopAppFramework().getText()
+							.equals("Java Swing")) {
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Swing/email/com/app/customer/controller/EmailNotification.java",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/EmailNotification.java");
+					}
+					if (presentationFrameworkSelectorWizard
+							.getComboDesktopAppFramework().getText()
+							.equals("Java FX")) {
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/JavaFx/email/com/app/customer/controller/EmailNotification.java",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/EmailNotification.java");
+						String filePath1 = templatePath
+								+ "/PresentationLayer/JavaFx/email/com/app/customer/controller/CustomerList.java";
+						StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+						data.put("emailCodeInJavaFx", value1);
+						data.put("emailButtonInJavaFx",
+								"@FXML private Button email;");
+						/*
+						 * Email button option for JavaFx
+						 */
+						data.put(
+								"emailButtonCodeInJavaFx",
+								"<Button id=\"email\" defaultButton=\"true\" layoutX=\"662.0\" layoutY=\"348.0\" mnemonicParsing=\"false\" onAction=\"#email\" prefHeight=\"39.0\" prefWidth=\"96.0001220703125\" style=\"\" text=\"Mail\">"
+										+ "<font>"
+										+ "<Font name=\"System Bold\" size=\"14.0\" fx:id=\"x1\" /> </font></Button>");
+					}
+				} else {
+					data.put("addButton", "btnAdd.setBounds(501, 406, 74, 30);");
+				}
+
+				/*
+				 * Cross Cutting features - Instrumentation
+				 */
+				if (crosscuttingConcernsSelectorWizard.getBtnInstrumentation()
+						.getSelection()) {
+					copyDirectory(templatePath + "/lib/Instrumentation",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ javaProjectName + "/lib/");
+
+					String filePath = templatePath
+							+ "/PresentationLayer/CommonClasspath/Instrumentation.classpath";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("instrumentationLib", value);
+
+					copyFile(
+							templatePath
+									+ "/common/Instrumetation/Monitoring.java",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ javaProjectName
+									+ "/src/com/jsf/instrumentaion/Monitoring.java");
+
+					copyDirectory(templatePath + "/common/Instrumetation/aop/",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ javaProjectName + "/WebContent/META-INF/");
+
+				}
+
+				/*
+				 * Cross Cutting features - Cache
+				 */
+				if (crosscuttingConcernsSelectorWizard.getBtnCaching()
+						.getSelection()) {
+
+					copyDirectory(templatePath + "/lib/Cache", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+					String filePath = templatePath
+							+ "/PresentationLayer/CommonClasspath/cache.classpath";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("cacheLib", value);
+
+					data.put(
+							"Cache_ImplStart",
+							" CachedObject obj = (CachedObject)CacheManager.getCache(new Long(1234));"
+									+ " if(obj!=null)  customerList= (List) obj.getObject();"
+									+ " if(customerList==null){ ");
+
+					data.put("Cache_ImplEnd",
+							"CachedObject co = new CachedObject(customerList, new Long(1234), 1);  "
+									+ "CacheManager.putCache(co);  }");
+					data.put("Cache_import",
+							"import com.hexCache.CacheManager;import com.hexCache.CachedObject;");
+
+				}
+
+				/*
+				 * Presentation Layer - JavaFx
+				 */
+
+				if (presentationFrameworkSelectorWizard
+						.getComboDesktopAppFramework().getText()
+						.equals("Java FX")) {
+
+					/*
+					 * SRC
+					 */
+					if (persistenceFrameworkSelectorWizard.getBtnJpa()
+							.getSelection()) {
+						if (!crosscuttingConcernsSelectorWizard
+								.getBtnNotification().getSelection()) {
+							copyDirectory(
+									templatePath
+											+ "/PresentationLayer/JavaFx/jpa/common/src",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/src/");
+							copyDirectory(
+									templatePath
+											+ "/PresentationLayer/JavaFx/jpa/common/view",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/view/");
+						} else {
+							copyDirectory(
+									templatePath
+											+ "/PresentationLayer/JavaFx/jpa/common/src",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/src/");
+							copyEmailFile(javaProjectName, templatePath,
+									workspace, data, container);
+
+						}
+					} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()
+							&& persistenceFrameworkSelectorWizard
+									.getBtnHibernate().getSelection()) {
+						if (!crosscuttingConcernsSelectorWizard
+								.getBtnNotification().getSelection()) {
+							copyDirectory(
+									templatePath
+											+ "/PresentationLayer/JavaFx/ejb/common/src",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/src/");
+							copyDirectory(
+									templatePath
+											+ "/PresentationLayer/JavaFx/ejb/common/view",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/view/");
+						} else {
+							copyDirectory(
+									templatePath
+											+ "/PresentationLayer/JavaFx/ejb/common/src",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/src/");
+							copyEmailFile(javaProjectName, templatePath,
+									workspace, data, container);
+
+						}
+					} else {
+						if (!crosscuttingConcernsSelectorWizard
+								.getBtnNotification().getSelection()) {
+							copyDirectory(templatePath
+									+ "/PresentationLayer/JavaFx/common/src",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/src/");
+							copyDirectory(templatePath
+									+ "/PresentationLayer/JavaFx/common/view",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/view/");
+						} else {
+							copyDirectory(templatePath
+									+ "/PresentationLayer/JavaFx/common/src",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/src/");
+							copyEmailFile(javaProjectName, templatePath,
+									workspace, data, container);
+
+						}
+					}
+
+					/*
+					 * POJO
+					 */
+
+					if (applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection()
+							|| applicationFrameworkSelectorWizard.getBtnEjb()
+									.getSelection()
+							&& (!applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection() && !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection())) {
+						/*
+						 * Ejb With Pojo
+						 */
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+
+							createFolder(container,
+									"src/com/app/customer/service");
+							data.put("Service",
+									"com.app.customer.lookup.CustomerLookup");
+							/*
+							 * Copy Files
+							 */
+							copyEJBDesktopFiles(javaProjectName, templatePath,
+									workspace, data, container);
+
+							copyFile(
+									templatePath
+											+ "/ApplicationLayer/Ejb/Rest/com/app/customer/service/ICustomer.java",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/service/ICustomer.java");
+						}
+
+						/*
+						 * Libraries
+						 */
+
+						copyFile(templatePath + "/lib/common/antlr-2.7.5.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/antlr-2.7.5.jar");
+						copyFile(templatePath
+								+ "/lib/common/cglib-nodep-2.1_3.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/cglib-nodep-2.1_3.jar");
+						copyFile(templatePath
+								+ "/lib/common/commons-collections.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/commons-collections.jar");
+						copyFile(templatePath
+								+ "/lib/common/commons-logging.jar", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ javaProjectName
+								+ "/lib/commons-logging.jar");
+						copyFile(templatePath + "/lib/common/dom4j-1.6.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/dom4j-1.6.jar");
+
+						String filePath1 = templatePath
+								+ "/PresentationLayer/CommonClasspath/Pojo.classpath";
+						StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+						data.put("pojoLib", value1);
+
+						if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+							copyDirectory(templatePath + "/lib/MySQL",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/lib/");
+							data.put(
+									"dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/mysql-connector-java-5.1.15-bin.jar\"/>");
+						} else if (dataBaseSelectorWizard.btnMicrosoftSqlServer
+								.getSelection()) {
+							copyDirectory(templatePath + "/lib/SQL", workspace
+									.getRoot().getLocation().toString()
+									+ "/" + javaProjectName + "/lib/");
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/sqljdbc4-4.0.jar\"/>");
+						} else if (dataBaseSelectorWizard.getBtnOracle()
+								.getSelection()) {
+							copyDirectory(templatePath + "/lib/Oracle",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/lib/");
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/ojdbc6.jar\"/>");
+						}
+
+						if (!persistenceFrameworkSelectorWizard.getBtnJpa()
+								.getSelection()
+								&& applicationFrameworkSelectorWizard
+										.getBtnSpring().getSelection()) {
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/pojo/src/com/app/customer/controller/CustomerAdd.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerAdd.java",
+									data);
+
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/pojo/src/com/app/customer/controller/CustomerList.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerList.java",
+									data);
+						} else if (persistenceFrameworkSelectorWizard
+								.getBtnJpa().getSelection()
+								&& (applicationFrameworkSelectorWizard
+										.getBtnEjb().getSelection() || applicationFrameworkSelectorWizard
+										.getBtnSpring().getSelection())) {
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/jpa/pojo/src/com/app/customer/controller/CustomerAdd.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerAdd.java",
+									data);
+
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/jpa/pojo/src/com/app/customer/controller/CustomerList.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerList.java",
+									data);
+						} else if (!persistenceFrameworkSelectorWizard
+								.getBtnJpa().getSelection()
+								&& applicationFrameworkSelectorWizard
+										.getBtnEjb().getSelection()) {
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/ejb/pojo/src/com/app/customer/controller/CustomerAdd.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerAdd.java",
+									data);
+
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/ejb/pojo/src/com/app/customer/controller/CustomerList.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerList.java",
+									data);
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/common/build.fxbuild.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/build.fxbuild/", data);
+					}
+
+					/*
+					 * Rest
+					 */
+
+					if ((applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection() || applicationFrameworkSelectorWizard
+							.getBtnEjb().getSelection())
+							&& applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection()) {
+
+						/*
+						 * Ejb With Rest
+						 */
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+
+							data.put("serviceProjectName", earProjectName
+									+ "WEB");
+							data.put("Rest_URL", "serviceController");
+
+							/*
+							 * Copy Files
+							 */
+							copyEJBDesktopFiles(javaProjectName, templatePath,
+									workspace, data, container);
+
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/rest/src/com/app/customer/controller/CustomerAdd.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerAdd.java/",
+								data);
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/rest/src/com/app/customer/controller/CustomerList.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerList.java/",
+								data);
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/common/build.fxbuild.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/build.fxbuild/", data);
+					}
+
+					/*
+					 * Soap
+					 */
+
+					if ((applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection() || applicationFrameworkSelectorWizard
+							.getBtnEjb().getSelection())
+							&& applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						/*
+						 * Ejb With Soap
+						 */
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+
+							data.put("serviceProjectName", earProjectName
+									+ "WEB");
+
+							/*
+							 * Copy Files
+							 */
+							copyEJBDesktopFiles(javaProjectName, templatePath,
+									workspace, data, container);
+
+						}
+						if (persistenceFrameworkSelectorWizard.getBtnJpa()
+								.getSelection()
+								&& applicationFrameworkSelectorWizard
+										.getBtnSoapService().getSelection()) {
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/jpa/soap/src/com/app/customer/controller/CustomerAdd.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerAdd.java",
+									data);
+
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/jpa/soap/src/com/app/customer/controller/CustomerList.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerList.java",
+									data);
+
+						} else {
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/soap/src/com/app/customer/controller/CustomerAdd.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerAdd.java",
+									data);
+
+							copyTemplate(
+									templatePath
+											+ "/PresentationLayer/JavaFx/soap/src/com/app/customer/controller/CustomerList.ftl",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/controller/CustomerList.java",
+									data);
+						}
+
+						createFolder(container, "src/com/app/customer/service");
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/JavaFx/soap/src/com/app/customer/service/ICustomer.java",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/service/ICustomer.java");
+
+						createFolder(container, "src/com/app/customer/stub");
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/soap/src/com/app/customer/stub/CustomerStub.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/stub/CustomerStub.java/",
+								data);
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/JavaFx/common/build.fxbuild.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/build.fxbuild/", data);
+					}
+				}
+
+				/*
+				 * Presentation Layer - Swing
+				 */
+
+				if (presentationFrameworkSelectorWizard
+						.getComboDesktopAppFramework().getText()
+						.equals("Java Swing")) {
+
+					/*
+					 * SRC
+					 */
+					if (!persistenceFrameworkSelectorWizard.getBtnJpa()
+							.getSelection()) {
+						copyDirectory(templatePath
+								+ "/PresentationLayer/Swing/common/src",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName + "/src/");
+
+					} else {
+						copyDirectory(templatePath
+								+ "/PresentationLayer/Swing/jpa/common/src",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName + "/src/");
+					}
+
+					/*
+					 * POJO
+					 */
+
+					if (applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection()
+							|| applicationFrameworkSelectorWizard.getBtnEjb()
+									.getSelection()
+							&& (!applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection() && !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection())) {
+
+						/*
+						 * Ejb With Pojo
+						 */
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+
+							createFolder(container,
+									"src/com/app/customer/service");
+							data.put("Service",
+									"com.app.customer.lookup.CustomerLookup");
+							/*
+							 * Copy Files
+							 */
+							copyEJBDesktopFiles(javaProjectName, templatePath,
+									workspace, data, container);
+
+							copyFile(
+									templatePath
+											+ "/ApplicationLayer/Ejb/Rest/com/app/customer/service/ICustomer.java",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ javaProjectName
+											+ "/src/com/app/customer/service/ICustomer.java");
+						}
+
+						/*
+						 * Libraries
+						 */
+
+						copyFile(templatePath + "/lib/common/antlr-2.7.5.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/antlr-2.7.5.jar");
+						copyFile(templatePath
+								+ "/lib/common/cglib-nodep-2.1_3.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/cglib-nodep-2.1_3.jar");
+						copyFile(templatePath
+								+ "/lib/common/commons-collections.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/commons-collections.jar");
+						copyFile(templatePath
+								+ "/lib/common/commons-logging.jar", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ javaProjectName
+								+ "/lib/commons-logging.jar");
+						copyFile(templatePath + "/lib/common/dom4j-1.6.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + javaProjectName
+										+ "/lib/dom4j-1.6.jar");
+
+						String filePath1 = templatePath
+								+ "/PresentationLayer/CommonClasspath/Pojo.classpath";
+						StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+						data.put("pojoLib", value1);
+
+						if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+							copyDirectory(templatePath + "/lib/MySQL",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/lib/");
+							data.put(
+									"dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/mysql-connector-java-5.1.15-bin.jar\"/>");
+						} else if (dataBaseSelectorWizard.btnMicrosoftSqlServer
+								.getSelection()) {
+							copyDirectory(templatePath + "/lib/SQL", workspace
+									.getRoot().getLocation().toString()
+									+ "/" + javaProjectName + "/lib/");
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/sqljdbc4-4.0.jar\"/>");
+						} else if (dataBaseSelectorWizard.getBtnOracle()
+								.getSelection()) {
+							copyDirectory(templatePath + "/lib/Oracle",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/" + javaProjectName + "/lib/");
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/ojdbc6.jar\"/>");
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Swing/pojo/src/com/app/customer/controller/CustomerAdd.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerAdd.java",
+								data);
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Swing/pojo/src/com/app/customer/controller/CustomerList.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerList.java",
+								data);
+
+					}
+
+					/*
+					 * Rest
+					 */
+
+					if ((applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection() || applicationFrameworkSelectorWizard
+							.getBtnEjb().getSelection())
+							&& applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection()) {
+
+						/*
+						 * Ejb With Rest
+						 */
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+
+							data.put("serviceProjectName", earProjectName
+									+ "WEB");
+							data.put("Rest_URL", "serviceController");
+
+							/*
+							 * Copy Files
+							 */
+							copyEJBDesktopFiles(javaProjectName, templatePath,
+									workspace, data, container);
+
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Swing/rest/src/com/app/customer/controller/CustomerAdd.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerAdd.java/",
+								data);
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Swing/rest/src/com/app/customer/controller/CustomerList.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerList.java/",
+								data);
+
+					}
+
+					/*
+					 * Soap
+					 */
+
+					if ((applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection() || applicationFrameworkSelectorWizard
+							.getBtnEjb().getSelection())
+							&& applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+
+						/*
+						 * Ejb With Soap
+						 */
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+
+							data.put("serviceProjectName", earProjectName
+									+ "WEB");
+							/*
+							 * Copy Files
+							 */
+							copyEJBDesktopFiles(javaProjectName, templatePath,
+									workspace, data, container);
+
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Swing/soap/src/com/app/customer/controller/CustomerAdd.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerAdd.java",
+								data);
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Swing/soap/src/com/app/customer/controller/CustomerList.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/controller/CustomerList.java",
+								data);
+
+						createFolder(container, "src/com/app/customer/service");
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Swing/soap/src/com/app/customer/service/ICustomer.java",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/service/ICustomer.java");
+
+						createFolder(container, "src/com/app/customer/stub");
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Swing/soap/src/com/app/customer/stub/CustomerStub.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ javaProjectName
+										+ "/src/com/app/customer/stub/CustomerStub.java/",
+								data);
+					}
+				}
+
+				/*
+				 * Copying the libraries
+				 */
+
+				/* Coping common libraries */
+
+				copyFile(templatePath + "/lib/common/paranamer-2.6.1.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ javaProjectName + "/lib/paranamer-2.6.1.jar");
+				copyFile(templatePath + "/lib/common/log4j-1.2.16.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ javaProjectName + "/lib/log4j-1.2.16.jar");
+				copyFile(templatePath + "/lib/common/HexLogger.jar", workspace
+						.getRoot().getLocation().toString()
+						+ "/" + javaProjectName + "/lib/HexLogger.jar");
+				copyFile(templatePath + "/lib/common/HJSF-Framework.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ javaProjectName + "/lib/HJSF-Framework.jar");
+				copyFile(templatePath + "/lib/common/jstl-1.2.jar", workspace
+						.getRoot().getLocation().toString()
+						+ "/" + javaProjectName + "/lib/jstl-1.2.jar");
+
+				/* Coping Rest Service ClassPath */
+				if (!applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard
+								.getBtnSoapService().getSelection()) {
+					copyDirectory(templatePath + "/lib/Rest Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+					String filePath4 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Rest.classpath";
+					StringBuilder value4 = loadDeploymentDescriptorData(filePath4);
+					data.put("restLib", value4);
+				}
+
+				/* Coping spring ClassPath */
+				if (applicationFrameworkSelectorWizard.getBtnSpring()
+						.getSelection()) {
+					copyDirectory(templatePath + "/lib/Spring/common",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ javaProjectName + "/lib/");
+					String filePath3 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Spring.classpath";
+					StringBuilder value3 = loadDeploymentDescriptorData(filePath3);
+					data.put("springLib", value3);
+
+				}
+
+				/* Coping Rest Service ClassPath */
+				if (applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()) {
+					copyDirectory(templatePath + "/lib/Rest Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+					String filePath4 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Rest.classpath";
+					StringBuilder value4 = loadDeploymentDescriptorData(filePath4);
+					data.put("restLib", value4);
+				}
+
+				/* Coping Soap Service ClassPath */
+				if (applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+					copyDirectory(templatePath + "/lib/Soap Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+					String filePath5 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Soap.classpath";
+					StringBuilder value5 = loadDeploymentDescriptorData(filePath5);
+					data.put("soapLib", value5);
+
+					copyDirectory(templatePath + "/lib/Rest Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+					String filePath4 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Rest.classpath";
+					StringBuilder value4 = loadDeploymentDescriptorData(filePath4);
+					data.put("restLib", value4);
+				}
+
+				/* Coping Hibernate ClassPath */
+				if (persistenceFrameworkSelectorWizard.getBtnHibernate()
+						.getSelection()) {
+					String filePath1 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Hibernate.classpath";
+					StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+					data.put("hibernateLib", value1);
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Hibernate", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+				}
+
+				/* Coping JPA ClassPath */
+				if (persistenceFrameworkSelectorWizard.getBtnJpa()
+						.getSelection()) {
+					String filePath1 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Jpa.classpath";
+					StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+					data.put("hibernateLib", value1);
+					/*
+					 * copyTemplate( templatePath +
+					 * "/DataLayer/JPA/com/app/customer/vo/Customer.ftl",
+					 * workspace.getRoot().getLocation().toString() + "/" +
+					 * javaProjectName +
+					 * "/src/com/app/customer/vo/Customer.java", data);
+					 */
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/JPA", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + javaProjectName + "/lib/");
+
+					data.put("additionalLib",
+							"<classpathentry kind=\"lib\" path=\"lib/javassist-3.18.1-GA.jar\"/>");
+					copyFile(templatePath
+							+ "/lib/Struts/javassist-3.18.1-GA.jar", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ javaProjectName
+							+ "/lib/javassist-3.18.1-GA.jar");
+				}
+
+				/* Coping EJB ClassPath */
+				if (applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+					String filePath1 = templatePath
+							+ "/PresentationLayer/CommonClasspath/Jboss.classpath";
+					StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+					data.put("jbossLib", value1);
+					/*
+					 * Copying the libraries
+					 */
+					copyFile(templatePath + "/lib/Jboss/jboss-client.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ javaProjectName + "/lib/jboss-client.jar");
+
+					/*
+					 * Copy Jboss-Client Properties
+					 */
+					copyFile(
+							templatePath
+									+ "/ApplicationLayer/Ejb/jboss-ejb-client.properties",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ javaProjectName
+									+ "/src/jboss-ejb-client.properties");
+				}
+				copyTemplate(
+						templatePath
+								+ "/PresentationLayer/CommonClasspath/Common.classpath.ftl",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ javaProjectName + "/.classpath/", data);
+
+			} catch (Exception ioe) {
+				ioe.printStackTrace();
+				log.error("Project is not created" + ioe.getMessage());
+				IStatus status = new Status(IStatus.ERROR,
+						"JavaSoftwareFactory", IStatus.OK,
+						ioe.getLocalizedMessage(), ioe);
+				throw new CoreException(status);
+			}
+		} catch (Exception ioe) {
+			ioe.printStackTrace();
+			log.error("Excepton in createWebProject method" + ioe.getMessage());
+			IStatus status = new Status(IStatus.ERROR, "JavaSoftwareFactory",
+					IStatus.OK, ioe.getLocalizedMessage(), ioe);
+			throw new CoreException(status);
+
+		}
+	}
+
+	private void createWebPresentationProject(IProject proj)
 			throws CoreException, OperationCanceledException {
 		try {
-			proj.create(description, null);
+			System.out.println("Inside Create Web Project");
+			URI projectURI = (!newProjectWizard.useDefaults()) ? newProjectWizard
+					.getLocationURI() : null;
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			if (proj == null) {
+				throw new Exception("Application Exception : IProject is null");
+			}
+			projDesc = workspace.newProjectDescription(proj.getName());
+			projDesc.setLocationURI(projectURI);
+			proj.create(projDesc, null);
 			proj.open(IResource.BACKGROUND_REFRESH, null);
 
 			IFacetedProject iFacetedProject = (IFacetedProject) ProjectFacetsManager
@@ -307,379 +1647,3109 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 					.getProjectFacet("jst.web");
 
 			iFacetedProject.installProjectFacet(JAVA_FACET.getVersion("1.7"),
-					null, null);
+					null, monitor);
 			iFacetedProject.installProjectFacet(WEB_FACET.getVersion("3.0"),
-					null, null);
-
-			IContainer container = (IContainer) proj;
-
-			createFolder(container, "src/com");
-			createFolder(container, "src/com/app");
-			createFolder(container, "src/com/app/framework");
-			createFolder(container, "src/com/app/framework/caching");
-			createFolder(container, "src/com/app/framework/exception");
-			createFolder(container, "src/com/app/framework/notification");
-			createFolder(container, "src/com/app/framework/config");
-
-			createFolder(container, "src/com/app/customer");
-			createFolder(container, "src/com/app/customer/vo");
-			createFolder(container, "src/com/app/customer/util");
-			createFolder(container, "src/com/app/customer/delegate");
-
-			IWorkspace workspace = ResourcesPlugin.getWorkspace();
-			log.info("WORKSPACE : ", workspace.getRoot().getLocation()
-					.toString());
-			log.info("WORKSPACE : "
-					+ workspace.getRoot().getLocation().toString());
-			log.info("Application Name : " + projectName);
-			String templatePath = ConfigHandler.getInstance()
-					.getSystemProperty("template.location");// System.getProperty("template.location");
-			log.info("Template Path : " + templatePath);
-
-			Map<String, Object> data = new HashMap<String, Object>();
-			data.put("projectName", projectName);
-			data.put("importDateTimeFormat", "");
-			data.put("dateTimeFormatAnnotation", "");
-			data.put("restServiceConfiguration", "");
-			data.put("springMVCConfiguration", "");
-			data.put("JSFConfiguration", "");
-			data.put("StrutsConfiguration", "");
-			data.put("WelcomeFile", "");
-
-			createFolder(container, "/WebContent/css");
-			createFolder(container, "/WebContent/images");
-			copyDirectory(templatePath + "/PresentationLayer/images", workspace
-					.getRoot().getLocation().toString()
-					+ "/" + projectName + "/WebContent/images");
-			/*
-			 * Angular JS Presentation Layer Code copying
-			 */
-			if (presentationFrameworkSelectorWizard.getComboWebAppFramework()
-					.getText().equals("SPA-Angular JS")) {
-				copyDirectory(templatePath + "/PresentationLayer/AngularJS",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/");
-				data.put("WelcomeFile", "Customer Application.html");
-			}
+					null, monitor);
 
 			/*
-			 * Spring MVC Code Copying
+			 * Generating Presentation Files from Template
 			 */
-			if (presentationFrameworkSelectorWizard.getComboWebAppFramework()
-					.getText().equals("Spring")) {
+
+			try {
+				IContainer container = (IContainer) proj;
+
+				log.info("WORKSPACE : ", workspace.getRoot().getLocation()
+						.toString());
+				log.info("WORKSPACE : "
+						+ workspace.getRoot().getLocation().toString());
+				log.info("Application Name : " + webProjectName);
+				String templatePath = ConfigHandler.getInstance()
+						.getSystemProperty("template.location");
+				log.info("Template Path : " + templatePath);
+
+				Map<String, Object> data = new HashMap<String, Object>();
+				data.put("projectName", webProjectName);
+				data.put("serviceProjectName", serviceProjectName);
+				data.put("serverHost", "http://localhost:8080/");
+				data.put("importDateTimeFormat", "");
+				data.put("dateTimeFormatAnnotation", "");
+				data.put("jsonFormatAnnotation", "");
+				data.put("importJsonFormat", "");
+				data.put("restServiceConfiguration", "");
+				data.put("springMVCConfiguration", "");
+				data.put("JSFConfiguration", "");
+				data.put("StrutsConfiguration", "");
+				data.put("soapServiceConfiguration", "");
+				data.put("welcomeFile", "");
+				data.put("instrumentationBean", "");
+				data.put("Constant_Rest", "");
+				data.put("APP_NAME", "");
+				// data.put("ApplicationContext", "");
+				data.put("EJB_Imports", "");
+				data.put("Imports", "");
+				data.put("JNDI_Lookup", "");
+				data.put("Stateless", "");
+				data.put("Remote", "");
+				data.put("EJB", "");
+				data.put("JTA_Datasource", "");
+				data.put("url", url);
+				data.put("userName", userName);
+				data.put("password", password);
+				data.put("Driver", "");
+				data.put("Dialect", "");
+				data.put("dataBaseLib", "");
 				/*
-				 * WebContent
+				 * cross cutting
 				 */
-				createFolder(container, "/WebContent/jsp");
-				copyDirectory(templatePath
-						+ "/PresentationLayer/Spring MVC/css", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/WebContent/css");
-				copyTemplate(
-						templatePath
-								+ "/PresentationLayer/Spring MVC/jsp/customerList.jsp.ftl",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/WebContent/jsp/customerList.jsp", data);
-				copyTemplate(
-						templatePath
-								+ "/PresentationLayer/Spring MVC/jsp/customerAdd.jsp.ftl",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/WebContent/jsp/customerAdd.jsp", data);
-				copyTemplate(
-						templatePath
-								+ "/PresentationLayer/Spring MVC/jsp/customerEdit.jsp.ftl",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/WebContent/jsp/customerEdit.jsp", data);
-				copyTemplate(
-						templatePath
-								+ "/PresentationLayer/Spring MVC/WEB-INF/${projectName}-servlet.xml.ftl",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/WEB-INF/"
-								+ projectName + "-servlet.xml", data);
-				copyTemplate(templatePath
-						+ "/PresentationLayer/Spring MVC/WEB-INF/web.xml.ftl",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/WEB-INF/web.xml",
-						data);
-				String filePath = workspace.getRoot().getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/web.xml";
-				StringBuilder value = loadDeploymentDescriptorData(filePath);
-				data.put("springMVCConfiguration", value);
+				data.put("Validation_Call", "");
+				data.put("Validation_CatchEdit", "");
+				data.put("Validation_CatchAdd", "");
+				data.put("Validation_import", "");
+				data.put("Cache_import", "");
+				data.put("Cache_ImplStart", "");
+				data.put("Cache_ImplEnd", "");
+				data.put("Notification_method", "");
+				data.put("Notification_Import", "");
+				data.put("Email_Action", "");
+				data.put("Email_button", "");
+				data.put("AuthenticationAuthorization", "");
+				data.put("Index_onload", "");
+				data.put("Index_form", "");
+				data.put("notemptyerror", "${not empty error}");
+				data.put("error", "${error}");
+				data.put("Jsf_Notification", "");
+				data.put("Jsf_Notification_Import", "");
+				data.put("Jsf_Notification_Object", "");
+				data.put("CallValidation", "JndiLookup.doLookUp(\"Customer\")");
+				data.put("LoginPageJs", "false");
+				data.put("ListPageJs", "true");
+				data.put("EmailPageJs", "false");
+				data.put("Authentication", "");
+				data.put("EmailHtml", "");
+				data.put("LoginHtml", "");
+				data.put("AuthenticationSPAMethod", "");
+				data.put("Login_Style", "");
+				data.put("idConvert", "");
+				data.put("customerVo", "Customer");
+				/*
+				 * cross cutting EJB
+				 */
+				data.put("CacheImport", "");
+				data.put("importValidation", "");
+				data.put("importNotification", "");
+				data.put("AddValidation", "");
+				data.put("ValidationEdit", "");
+				data.put("Cache_ImplStart", "");
+				data.put("Cache_ImplEnd", "");
+				data.put("Notification_method", "");
 
 				/*
-				 * Src
+				 * End
 				 */
-				createFolder(container, "src/com/app/customer/controller");
-				copyDirectory(templatePath
-						+ "/PresentationLayer/Spring MVC/src", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/src/");
-				data.put("importDateTimeFormat",
-						"import org.springframework.format.annotation.DateTimeFormat;");
-				data.put("dateTimeFormatAnnotation",
-						"@DateTimeFormat(pattern = \"dd/MM/yyyy\")");
-				copyTemplate(templatePath
-						+ "/common/src/com/app/customer/vo/Customer.java.ftl",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/src/com/app/customer/vo/Customer.java",
-						data);
-				/*
-				 * Copying the libraries
-				 */
-				copyDirectory(templatePath + "/lib/Spring/common", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/lib/");
-				copyDirectory(templatePath + "/lib/Spring/MVC", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/lib/");
-			}
-
-			/*
-			 * Application Layer - Spring IOC
-			 */
-			if (applicationFrameworkSelectorWizard.getBtnSpring()
-					.getSelection()) {
+				data.put("RestEasyConfig", "");
 				data.put(
-						"customerBusinessDelegateObject",
-						"(CustomerBusinessDelegate) BootStrapper.getService().getBean(\"CustomerDelegate\")");
-				copyDirectory(templatePath + "/ApplicationLayer/Spring",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/src/");
-				/*
-				 * Copying the libraries
-				 */
-				copyDirectory(templatePath + "/lib/Spring/common", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/lib/");
+						"Absolute_Ordering",
+						"<absolute-ordering>\n<name>HJSF_Framework</name>\n<others/></absolute-ordering>");
+				data.put("Rest_URL", "rest");
+				data.put("Service", "com.app.customer.service.CustomerImpl");
+				data.put("webServiceReferer", "Service/");
 
-			} else {
-				data.put("customerBusinessDelegateObject",
-						"new CustomerBusinessDelegate()");
-			}
-
-			/*
-			 * JSF
-			 */
-			if (presentationFrameworkSelectorWizard.getComboWebAppFramework()
-					.getText().equals("JSF")) {
-				/*
-				 * WebContent
-				 */
-				copyDirectory(templatePath + "/PresentationLayer/Jsf/css",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/css/");
+				createFolder(container, "/WebContent/css");
+				createFolder(container, "/WebContent/images");
+				createFolder(container, "/src/com");
 				copyDirectory(templatePath + "/PresentationLayer/images",
 						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/images/");
-				createFolder(container, "/WebContent/pages");
-				copyDirectory(templatePath + "/PresentationLayer/Jsf/pages",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/pages/");
-				copyFile(templatePath + "/PresentationLayer/Jsf/index.jsp",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/index.jsp");
-				String filePath = templatePath
-						+ "/PresentationLayer/Jsf/WEB-INF/web.xml";
-				StringBuilder value = loadDeploymentDescriptorData(filePath);
-				data.put("JSFConfiguration", value);
-				data.put("WelcomeFile", "index.jsp");
+								+ webProjectName + "/WebContent/images");
 				/*
-				 * Src
+				 * Web Service Referer Changes For EJB RestEasy
 				 */
-				createFolder(container, "src/com/app/customer/mbean");
-				copyTemplate(
-						templatePath
-								+ "/PresentationLayer/Jsf/src/com/app/customer/mbean/CustomerBean.java.ftl",
-						workspace.getRoot().getLocation().toString()
+				if (applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+					data.put("webServiceReferer", "/");
+				}
+
+				/*
+				 * Cross Cutting Features - Validation
+				 */
+
+				if (crosscuttingConcernsSelectorWizard.getBtnValidation()
+						.getSelection()) {
+					copyDirectory(templatePath + "/lib/Validation", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+					data.put("idConvert", "customer.getCustomerid().toString()");
+					createFolder(container, "src/com/app");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/validation");
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Struts")) {
+						data.put("Validation_Call",
+								"new Validation().isCustomerValidate(customer);");
+						data.put(
+								"Validation_CatchEdit",
+								"catch (HexValidationException ex) { "
+										+ "ServletActionContext.getRequest().setAttribute(\"error\",ex.getMessage());"
+										+ "return \"customerEdit\";" + "}");
+
+						data.put(
+								"Validation_CatchAdd",
+								"catch (HexValidationException ex) { "
+										+ "ServletActionContext.getRequest().setAttribute(\"error\",ex.getMessage());"
+										+ "return \"customerAdd\";" + "}");
+					}
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Spring")) {
+						data.put("Validation_Call",
+								"new Validation().isCustomerValidate(customer);");
+
+						data.put(
+								"Validation_CatchEdit",
+								"catch (HexValidationException ex) { "
+										+ "request.setAttribute(\"error\", ex.getMessage());"
+										+ "model = new ModelAndView(\"customerEdit\");"
+										+ "}");
+
+						data.put(
+								"Validation_CatchAdd",
+								"catch (HexValidationException ex) { "
+										+ "request.setAttribute(\"error\", ex.getMessage());"
+										+ "model = new ModelAndView(\"customerAdd\");"
+										+ "}");
+
+					}
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText().equals("JSF")) {
+						data.put("Validation_Call",
+								"new Validation().isCustomerValidate(customer);");
+						data.put(
+								"Validation_CatchEdit",
+								"catch (HexValidationException hex) { "
+										+ "facesContext.addMessage(null,new FacesMessage(hex.getMessage()) );"
+										+ "facesContext.getExternalContext().getFlash().setKeepMessages(true); "
+										+ " return \"CustomerEdit.xhtml?faces-redirect=true\"; }");
+
+						data.put(
+								"Validation_CatchAdd",
+								"catch (HexValidationException hex) { "
+										+ " customer = new Customer(); "
+										+ "facesContext.addMessage(null,new FacesMessage(hex.getMessage()) ); "
+										+ "facesContext.getExternalContext().getFlash().setKeepMessages(true); "
+										+ "return \"CustomerAdd.xhtml?faces-redirect=true\"; }");
+
+					}
+
+					data.put(
+							"Validation_import",
+							"import com.app.customer.validation.Validation; import com.hjsf.validator.HexValidationException;");
+					copyTemplate(
+							templatePath
+									+ "/common/src/com/app/customer/validation/Validation.ftl",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ webProjectName
+									+ "/src/com/app/customer/validation/Validation.java",
+							data);
+				}
+
+				/*
+				 * Cross Cutting Features - Cache
+				 */
+
+				if (crosscuttingConcernsSelectorWizard.getBtnCaching()
+						.getSelection()) {
+
+					copyDirectory(templatePath + "/lib/Cache", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+
+					data.put(
+							"Cache_ImplStart",
+							" CachedObject obj = (CachedObject)CacheManager.getCache(new Long(1234));"
+									+ " if(obj!=null)  customerList= (List) obj.getObject();"
+									+ " if(customerList==null){ ");
+
+					data.put("Cache_ImplEnd",
+							"CachedObject co = new CachedObject(customerList, new Long(1234), 1);  "
+									+ "CacheManager.putCache(co);  }");
+					data.put("Cache_import",
+							"import com.hexCache.CacheManager;import com.hexCache.CachedObject;");
+
+				}
+				/*
+				 * Cross Cutting Features - Notification
+				 */
+				if (crosscuttingConcernsSelectorWizard.getBtnNotification()
+						.getSelection()) {
+					copyDirectory(templatePath + "/lib/Notification", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+					copyFile(
+							templatePath
+									+ "/common/Authentication&Authorization/Login_style.css",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/css/Login_style.css");
+					data.put(
+							"Notification_Import",
+							"import com.hex.framework.mail.exception.MailingException; import com.hex.framework.mail.MailingImpl; import com.hex.framework.mail.vo.MailVO; import java.util.Locale; import java.util.ResourceBundle; import org.apache.commons.validator.routines.EmailValidator;");
+					copyDirectory(templatePath + "/common/src/email", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/src/");
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Struts")) {
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Struts/common/email/email.jsp",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/pages/email.jsp/");
+
+						data.put(
+								"Notification_method",
+								" public String sendEmail() {  "
+										+ " ResourceBundle bundle = ResourceBundle.getBundle(\"MailServerCridencials\", Locale.ENGLISH); "
+										+ " EmailValidator emailValidator = EmailValidator.getInstance(); String from=\"\"; String subject=\"\"; String message=\"\"; MailVO mailVO = new MailVO(); "
+										+ " String[] to = ServletActionContext.getRequest().getParameter(\"toemail\").split(\";\"); if(!emailValidation(to).equals(\"failed\")) mailVO.setTos(to); "
+										+ " else return \"email\"; String[] cc = ServletActionContext.getRequest().getParameter(\"ccemail\").split(\";\"); if(!\"\".equals(cc[0])) if(!emailValidation(cc).equals(\"failed\")) "
+										+ " mailVO.setCcs(cc); else return \"email\"; String[] bc = ServletActionContext.getRequest().getParameter(\"bcemail\").split(\";\"); if(!\"\".equals(bc[0])) if(!emailValidation(bc).equals(\"failed\")) "
+										+ "	mailVO.setBccs(bc); else return \"email\"; from = ServletActionContext.getRequest().getParameter(\"name\"); if(!emailValidator.isValid(from)) return \"email\"; message = ServletActionContext.getRequest().getParameter(\"message\"); "
+										+ " String host=bundle.getString(\"SEVER_HOST\"); int port=Integer.parseInt(bundle.getString(\"SEVER_PORT\")); mailVO.setFrom(from); mailVO.setHost(host); mailVO.setSubject(subject); mailVO.setBody(message);"
+										+ " mailVO.setPort(port); if(to.length>0) mailVO.setTos(to); try { new MailingImpl().sendEmail(mailVO); } catch (Exception e) { e.printStackTrace(); return \"email\"; } return \"customerList\"; } "
+										+
+
+										" private String emailValidation(String[] email) { EmailValidator emailValidator = EmailValidator.getInstance();for (int i = 0; i < email.length; i++) { "
+										+ " if (!emailValidator.isValid(email[i])) return \"failed\"; } return \"success\"; }");
+
+					}
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Spring")) {
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Spring MVC/common/email/email.jsp",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/jsp/email.jsp");
+
+						data.put(
+								"Notification_method",
+								"@RequestMapping(value = \"/sendEmail\", method = RequestMethod.POST) public String sendEmail(HttpServletRequest request, ModelMap model) { "
+										+ " ResourceBundle bundle = ResourceBundle.getBundle(\"MailServerCridencials\", Locale.ENGLISH); EmailValidator emailValidator = EmailValidator.getInstance();"
+										+ " MailVO mailVO = new MailVO(); String from=\"\"; String subject=\"\";		String message=\"\";    String[] to = request.getParameter(\"toemail\").split(\";\");  if(!emailValidation(to).equals(\"failed\"))  mailVO.setTos(to); else return \"email\";	 "
+										+ " String[] cc = request.getParameter(\"ccemail\").split(\";\"); if(!\"\".equals(cc[0])) if(!emailValidation(cc).equals(\"failed\")) mailVO.setCcs(cc); else return \"email\"; String[] "
+										+ " bc = request.getParameter(\"bcemail\").split(\";\");  if(!\"\".equals(bc[0])) if(!emailValidation(bc).equals(\"failed\")) 	mailVO.setBccs(bc); else return \"email\";  "
+										+ " from = request.getParameter(\"name\"); 	if(!emailValidator.isValid(from)) return \"email\"; "
+										+ " subject = request.getParameter(\"subject\");	message = request.getParameter(\"message\"); "
+										+ " String host=bundle.getString(\"SEVER_HOST\");		int port=Integer.parseInt(bundle.getString(\"SEVER_PORT\")); "
+										+ " mailVO.setFrom(from);	mailVO.setHost(host);	mailVO.setSubject(subject);	mailVO.setBody(message); mailVO.setPort(port); "
+										+ " try {	new MailingImpl().sendEmail(mailVO);	"
+										+ " List customerList=getCustomerList(); CustomerForm customerForm = new CustomerForm(); customerForm.setCustomers(customerList);"
+										+ " List<String> searchFiledOptions = getSearchFieldOptions(); model.addAttribute(\"searchFieldOptions\", searchFiledOptions); model.addAttribute(\"searchTxt\", \"\"); model.addAttribute(\"customerForm\", customerForm);"
+										+ " } catch (Exception e) { e.printStackTrace(); return \"email\"; 	} return \"customerList\"; 	} @RequestMapping(value = \"email\", method = RequestMethod.GET)"
+										+ " public ModelAndView email() { ModelAndView model = new ModelAndView(\"email\");return model;}"
+
+										+ " private String emailValidation(String[] email){ EmailValidator emailValidator = EmailValidator.getInstance(); for(int i=0;i<email.length;i++){  if(!emailValidator.isValid(email[i])) return \"failed\"; } return \"success\"; }");
+
+						data.put(
+								"Email_button",
+								"<input type=\"button\" class=\"btn btn-default\" value=\"Email\" "
+										+ "onclick=\"location.href='/"
+										+ webProjectName
+										+ "/auth/email'\" style=\"float: right\">");
+
+					}
+
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText().equals("JSF")) {
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Jsf/common/email/Email.xhtml",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/pages/Email.xhtml");
+
+						data.put(
+								"Notification_method",
+								"public void emial() throws IOException { FacesContext.getCurrentInstance().renderResponse(); FacesContext.getCurrentInstance().getExternalContext().redirect(\"Email.xhtml\"); } "
+										+ " public String sendEmail() throws IOException { ResourceBundle bundle = ResourceBundle.getBundle(\"MailServerCridencials\",Locale.ENGLISH); 	FacesContext facesContext=FacesContext.getCurrentInstance();"
+										+ " String from=\"\";  String subject=\"\"; String message=\"\";   MailVO mailVO = new MailVO(); EmailValidator emailValidator = EmailValidator.getInstance(); "
+										+ " String[] to = email.getTo().split(\";\"); if(!emailValidation(to).equals(\"failed\"))  mailVO.setTos(to); else { facesContext.addMessage(null,new FacesMessage(\"Please enter To address\") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return \"Email.xhtml?faces-redirect=true\";} "
+										+ " String[] cc = email.getCc().split(\";\"); if(!\"\".equals(cc[0]))if(!emailValidation(cc).equals(\"failed\"))  mailVO.setCcs(cc); else{ facesContext.addMessage(null,new FacesMessage(\"Please enter Cc address\") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return \"Email.xhtml?faces-redirect=true\";	}"
+										+ " String[] bc = email.getBc().split(\";\"); if(!\"\".equals(bc[0])) if(!emailValidation(bc).equals(\"failed\")) 	mailVO.setBccs(bc); else{ facesContext.addMessage(null,new FacesMessage(\"Please enter Bc address\") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return \"Email.xhtml?faces-redirect=true\";	}"
+										+ " if(!emailValidator.isValid(email.getFrom())) { facesContext.addMessage(null,new FacesMessage(\"Please enter From address\") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return \"Email.xhtml?faces-redirect=true\";	} else{ mailVO.setFrom(email.getFrom()); } "
+										+ " String host=bundle.getString(\"SEVER_HOST\");		int port=Integer.parseInt(bundle.getString(\"SEVER_PORT\"));  mailVO.setSubject(email.getSub()); "
+										+ " mailVO.setBody(email.getMeg()); mailVO.setHost(host);	 mailVO.setPort(port); try { new MailingImpl().sendEmail(mailVO); FacesContext.getCurrentInstance().getExternalContext().redirect(\"CustomerList.xhtml\"); "
+										+ " }	catch (Exception e) {  facesContext.addMessage(null,new FacesMessage(\"Please enter Valid address\") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return \"Email.xhtml?faces-redirect=true\";	 } return null; }"
+
+										+ " private String emailValidation(String[] email){ EmailValidator emailValidator = EmailValidator.getInstance(); for(int i=0;i<email.length;i++){ "
+										+ " if(!emailValidator.isValid(email[i])) return \"failed\"; } return \"success\"; }");
+
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Jsf/common/notification/EmailVo.java",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/vo/EmailVo.java");
+						data.put(
+								"Jsf_Notification",
+								"private EmailVo email; public EmailVo getEmail() {return email; } public void setEmail(EmailVo email) {this.email = email;}");
+						data.put("Jsf_Notification_Import",
+								"import com.app.customer.vo.EmailVo;");
+						data.put("Jsf_Notification_Object",
+								"email=new EmailVo(); setShowEmailbutton(true);");
+
+					}
+
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Struts")) {
+						data.put(
+								"Email_Action",
+								" <action name=\"email\">  <result >/pages/email.jsp</result> </action> "
+										+ " <action name=\"sendEmail\"    class=\"com.app.customer.mbean.CustomerBean\"    method=\"sendEmail\"> "
+										+ " <result name=\"customerList\">/pages/CustomerList.jsp</result>     <result name=\"email\">/pages/email.jsp</result>   </action>");
+						data.put("Email_button", "setEmail(false);");
+					}
+
+				}
+
+				/*
+				 * Cross Cutting Features - Instrumentation
+				 */
+				if (crosscuttingConcernsSelectorWizard.getBtnInstrumentation()
+						.getSelection()) {
+					copyDirectory(templatePath + "/lib/Instrumentation",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/lib/");
+
+					copyFile(
+							templatePath
+									+ "/common/Instrumetation/Monitoring.java",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ webProjectName
+									+ "/src/com/jsf/instrumentaion/Monitoring.java");
+
+					copyDirectory(templatePath + "/common/Instrumetation/aop/",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/WebContent/META-INF/");
+
+				}
+
+				/*
+				 * Cross Cutting Features - Authentication&Authorization
+				 */
+				if (crosscuttingConcernsSelectorWizard
+						.getBtnAuthenticationAutherization().getSelection()
+						&& (!presentationFrameworkSelectorWizard
+								.getComboWebAppFramework().getText()
+								.equals("SPA-Angular JS"))) {
+					copyDirectory(templatePath
+							+ "/lib/Authentication&Authorization", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+
+					copyFile(
+							templatePath
+									+ "/common/Authentication&Authorization/LdapCridencials.properties",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/src/LdapCridencials.properties");
+
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Struts")) {
+						copyFile(
+								templatePath
+										+ "/common/Authentication&Authorization/Login_style.css",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/css/Login_style.css");
+						data.put(
+								"AuthenticationAuthorization",
+								"<absolute-ordering> <name>Authentication</name> <name>StrutsPrepareAndExecuteFilter</name> <others/> </absolute-ordering>");
+						String filePath = templatePath
+								+ "/common/Authentication&Authorization/index.ftl";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+
+						data.put("Index_form", value);
+						data.put(
+								"Login_Style",
+								"<link type=\"text/css\" rel=\"stylesheet\" href=\"<%=request.getContextPath()%>/css/Login_style.css\" />");
+						copyDirectory(templatePath
+								+ "/lib/StrutsAuthentication", workspace
+								.getRoot().getLocation().toString()
 								+ "/"
-								+ projectName
-								+ "/src/com/app/customer/mbean/CustomerBean.java",
-						data);
-				copyFile(
-						templatePath
-								+ "/PresentationLayer/Jsf/src/ApplicationResources.properties",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/src/ApplicationResources.properties");
-				copyFile(
-						templatePath
-								+ "/PresentationLayer/Jsf/src/ApplicationResources_en.properties",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/src/ApplicationResources_en.properties");
+								+ webProjectName
+								+ "/WebContent/WEB-INF/lib/");
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Struts/common/src/Authentication.properties",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/src/Authentication.properties");
+					}
 
-				/*
-				 * Copying the libraries
-				 */
-				copyDirectory(templatePath + "/lib/JSF", workspace.getRoot()
-						.getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/lib/");
-			}
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Spring")) {
+						copyFile(
+								templatePath
+										+ "/common/Authentication&Authorization/Login_style.css",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/css/Login_style.css");
+						data.put(
+								"AuthenticationAuthorization",
+								"<absolute-ordering> <name>Authentication</name>  <others/> </absolute-ordering>");
 
-			/*
-			 * Struts - Presentation Layer
-			 */
-			if (presentationFrameworkSelectorWizard.getComboWebAppFramework()
-					.getText().equals("Struts")) {
-				/*
-				 * WebContent
-				 */
-				copyDirectory(templatePath + "/PresentationLayer/Struts/css",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/css/");
-				copyDirectory(templatePath + "/PresentationLayer/images",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/images/");
-				createFolder(container, "/WebContent/pages");
-				copyDirectory(templatePath + "/PresentationLayer/Struts/pages",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/pages/");
-				copyFile(templatePath + "/PresentationLayer/Struts/index.jsp",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/index.jsp");
-				String filePath = templatePath
-						+ "/PresentationLayer/Struts/WEB-INF/web.xml";
-				StringBuilder value = loadDeploymentDescriptorData(filePath);
-				data.put("WelcomeFile", "index.jsp");
-				data.put("StrutsConfiguration", value);
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Struts/common/src/Authentication.properties",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/src/Authentication.properties");
+						data.put("welcomeFile", "index.jsp");
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Spring MVC/common/index/index.jsp",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/index.jsp");
+					}
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText().equals("JSF")) {
+						data.put(
+								"AuthenticationAuthorization",
+								"<absolute-ordering> <name>Authentication</name>  <others/> </absolute-ordering>");
 
-				/*
-				 * Src
+						copyFile(
+								templatePath
+										+ "/common/Authentication&Authorization/Login_style.css",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/css/Login_style.css");
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/Jsf/common/src/Authentication.properties",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/src/Authentication.properties");
+						data.put("welcomeFile", "index.jsp");
+						String filePath = templatePath
+								+ "/common/Authentication&Authorization/index.ftl";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("Index_form", value);
+						data.put(
+								"Login_Style",
+								"<link type=\"text/css\" rel=\"stylesheet\" href=\"<%=request.getContextPath()%>/css/Login_style.css\" />");
+					}
+				} else {
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Struts")) {
+						data.put(
+								"AuthenticationAuthorization",
+								" <filter> <filter-name>struts2</filter-name> <filter-class> org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter </filter-class>"
+										+ "</filter> <filter-mapping> <filter-name>struts2</filter-name> <url-pattern>/auth/*</url-pattern> <dispatcher>REQUEST</dispatcher> <dispatcher>FORWARD</dispatcher></filter-mapping>");
+						data.put(
+								"Index_form",
+								"<form id='myform' action=\"<%=request.getContextPath()%>/auth/customerList\" method=\"post\"> </form>");
+						data.put("Index_onload", "onload=\"redirect();\"");
+					}
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText().equals("JSF")) {
+						data.put("Index_form",
+								"<% response.sendRedirect(\"auth/pages/CustomerList.xhtml\"); %>");
+					}
+				}
+
+				/**
+				 * SPA-Angular JS Cross cutting
 				 */
-				createFolder(container, "src/com/app/customer/mbean");
-				copyTemplate(
-						templatePath
-								+ "/PresentationLayer/Struts/src/com/app/customer/mbean/CustomerBean.ftl",
-						workspace.getRoot().getLocation().toString()
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText()
+						.equals("SPA-Angular JS")
+						&& (crosscuttingConcernsSelectorWizard
+								.getBtnValidation().getSelection()
+								|| crosscuttingConcernsSelectorWizard
+										.getBtnCaching().getSelection()
+								|| crosscuttingConcernsSelectorWizard
+										.getBtnNotification().getSelection()
+								|| crosscuttingConcernsSelectorWizard
+										.getBtnAuthenticationAutherization()
+										.getSelection() || crosscuttingConcernsSelectorWizard
+								.getBtnInstrumentation().getSelection())) {
+					createFolder(container, "src/com/app/");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/vo");
+					createFolder(container, "src/com/app/customer/validation");
+
+					if (applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()) {
+						data.put("Rest_URL", "serviceController");
+					}
+					if (applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection()
+							&& persistenceFrameworkSelectorWizard.getBtnJpa()
+									.getSelection()) {
+						copyTemplate(
+								templatePath
+										+ "/DataLayer/JPA/com/app/customer/vo/Customer.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/vo/Customer.java",
+								data);
+					} else {
+						copyTemplate(
+								templatePath
+										+ "/common/src/com/app/customer/vo/Customer.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/vo/Customer.java",
+								data);
+					}
+
+					if (crosscuttingConcernsSelectorWizard.getBtnValidation()
+							.getSelection()) {
+						copyDirectory(templatePath + "/lib/Validation",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/AngularJS/crosscutting/com/app/customer/validation/Validation.java",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/validation/Validation.java");
+
+						data.put("Validation_Call",
+								"new Validation().isCustomerValidate(customer);");
+						data.put("Validation_CatchEdit",
+								"catch (HexValidationException e) {return \"Failure:\" + e.getMessage();}");
+
+						data.put(
+								"Validation_import",
+								"import com.app.customer.validation.Validation; import com.hjsf.validator.HexValidationException;");
+
+					}
+					if (crosscuttingConcernsSelectorWizard.getBtnNotification()
+							.getSelection()) {
+						copyDirectory(templatePath + "/lib/Notification",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+
+						data.put(
+								"importNotification",
+								"import javax.mail.SendFailedException;import com.hex.framework.mail.vo.MailVO;import com.app.customer.vo.EmailVo;import com.hex.framework.mail.MailingImpl; "
+										+ " import com.hex.framework.mail.exception.MailingException;import org.apache.commons.validator.routines.EmailValidator;");
+						data.put("Email_button", "true");
+						copyDirectory(templatePath + "/common/src/email",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName + "/src/");
+						String filePath = templatePath
+								+ "/PresentationLayer/AngularJS/crosscutting/SpaEmail.ftl";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("Notification_method", value);
+
+						copyFile(
+								templatePath
+										+ "/PresentationLayer/AngularJS/crosscutting/com/app/customer/vo/EmailVo.java",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/vo/EmailVo.java");
+
+					}
+					if (crosscuttingConcernsSelectorWizard.getBtnCaching()
+							.getSelection()) {
+						copyDirectory(templatePath + "/lib/Cache", workspace
+								.getRoot().getLocation().toString()
 								+ "/"
-								+ projectName
-								+ "/src/com/app/customer/mbean/CustomerBean.java",
-						data);
-				copyFile(
-						templatePath
-								+ "/PresentationLayer/Struts/src/ApplicationResources.properties",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/src/ApplicationResources.properties");
-				copyFile(
-						templatePath
-								+ "/PresentationLayer/Struts/src/ApplicationResources_en.properties",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName
-								+ "/src/ApplicationResources_en.properties");
-				copyFile(templatePath
-						+ "/PresentationLayer/Struts/src/struts.xml", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/src/struts.xml");
+								+ webProjectName
+								+ "/WebContent/WEB-INF/lib/");
+						data.put(
+								"Cache_ImplStart",
+								"CachedObject obj = (CachedObject) CacheManager.getCache(new Long(1234)); if (obj != null) customerList = (List) obj.getObject(); if (customerList == null) {");
+						data.put(
+								"Cache_ImplEnd",
+								"CachedObject co = new CachedObject(customerList, new Long(1234), 1); CacheManager.putCache(co);} ");
+						data.put("CacheImport",
+								"import com.hexCache.CacheManager; import com.hexCache.CachedObject;");
+
+					}
+					if (crosscuttingConcernsSelectorWizard
+							.getBtnAuthenticationAutherization().getSelection()) {
+						copyFile(
+								templatePath
+										+ "/common/Authentication&Authorization/LdapCridencials.properties",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/src/LdapCridencials.properties");
+						data.put(
+								"Authentication",
+								"import com.app.customer.authentication.vo.UserInformation; import com.app.customer.util.LdapAuthentication; ");
+						copyDirectory(templatePath
+								+ "/lib/Authentication&Authorization",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+						String filePath = templatePath
+								+ "/PresentationLayer/AngularJS/crosscutting/authentication.ftl";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("AuthenticationSPAMethod", value);
+					}
+					if (applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection()
+							|| applicationFrameworkSelectorWizard.getBtnEjb()
+									.getSelection()) {
+						if (applicationFrameworkSelectorWizard
+								.getBtnSoapService().getSelection()
+								&& !applicationFrameworkSelectorWizard
+										.getBtnRestService().getSelection()) {
+							data.put("service",
+									"com.app.customer.stub.CustomerStub");
+						}
+					}
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						if (applicationFrameworkSelectorWizard.getBtnSpring()
+								.getSelection()) {
+							data.put("service",
+									"com.app.customer.service.CustomerImpl");
+						} else {
+							data.put("service",
+									"com.app.customer.lookup.CustomerLookup");
+						}
+					}
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()) {
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/AngularJS/crosscutting/com/app/customer/validation/pojoSoap/CustomerValidation.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/validation/CustomerValidation.java",
+								data);
+					} else
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/AngularJS/crosscutting/com/app/customer/validation/rest/CustomerValidation.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/validation/CustomerValidation.java",
+								data);
+
+				}
 
 				/*
-				 * Copying the libraries
+				 * Angular JS Presentation Layer Code copying
 				 */
-				copyDirectory(templatePath + "/lib/Struts", workspace.getRoot()
-						.getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/lib/");
-			}
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText()
+						.equals("SPA-Angular JS")
+						&& (crosscuttingConcernsSelectorWizard
+								.getBtnValidation().getSelection()
+								|| crosscuttingConcernsSelectorWizard
+										.getBtnCaching().getSelection()
+								|| crosscuttingConcernsSelectorWizard
+										.getBtnNotification().getSelection()
+								|| crosscuttingConcernsSelectorWizard
+										.getBtnAuthenticationAutherization()
+										.getSelection() || crosscuttingConcernsSelectorWizard
+								.getBtnInstrumentation().getSelection())) {
+					createFolder(container, "/WebContent/js");
+					copyFile(
+							templatePath
+									+ "/PresentationLayer/AngularJS/common/css/bootstrap.min.css",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/css/bootstrap.min.css");
+					copyFile(
+							templatePath
+									+ "/PresentationLayer/AngularJS/common/css/style.css",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/css/style.css");
+					copyFile(
+							templatePath
+									+ "/PresentationLayer/AngularJS/common/js/ui-bootstrap-tpls-1.2.4.min.js",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ webProjectName
+									+ "/WebContent/js/ui-bootstrap-tpls-1.2.4.min.js");
+					data.put("welcomeFile", "Customer Application.html");
+					if (crosscuttingConcernsSelectorWizard
+							.getBtnAuthenticationAutherization().getSelection()) {
 
-			/*
-			 * Application Layer - Rest Service
-			 */
+						String filePath = templatePath
+								+ "/PresentationLayer/AngularJS/crosscutting/Login.ftl";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("LoginHtml", value);
+						data.put("LoginPageJs", "true");
+						data.put("ListPageJs", "false");
 
-			if (applicationFrameworkSelectorWizard.getBtnRestService()
-					.getSelection()) {
-				createFolder(container, "src/com/app/customer/rest");
-				createFolder(container, "src/com/app/customer/rest/service");
-				createFolder(container, "/WebContent/js");
+					}
+					if (crosscuttingConcernsSelectorWizard.getBtnNotification()
+							.getSelection()) {
+						String filePath = templatePath
+								+ "/PresentationLayer/AngularJS/crosscutting/Email.ftl";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("EmailHtml", value);
+						data.put("EmailPageJs", "true");
+					}
+
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/AngularJS/crosscutting/script.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/js/script.js", data);
+					copyFile(
+							templatePath
+									+ "/PresentationLayer/AngularJS/crosscutting/SpaUrl.properties",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/src/SpaUrl.properties");
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/AngularJS/crosscutting/Customer Application.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/Customer Application.html",
+							data);
+
+				} else if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText()
+						.equals("SPA-Angular JS")) {
+					copyDirectory(templatePath
+							+ "/PresentationLayer/AngularJS/common", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/");
+					data.put("welcomeFile", "Customer Application.html");
+					createFolder(container, "/WebContent/js");
+					/*
+					 * Copying script.js with rest service if Rest Service is
+					 * enabled
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("Service",
+									"com.app.customer.lookup.CustomerLookup");
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/AngularJS/Pojo/js/script.js.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/js/script.js", data);
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnRestService().getSelection()) {
+
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("serviceProjectName", webProjectName);
+							data.put("Rest_URL", "serviceController");
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/AngularJS/Rest/js/script.js.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/js/script.js", data);
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnSoapService().getSelection()) {
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/AngularJS/Soap/js/script.js.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/js/script.js", data);
+					}
+				}
 
 				/*
-				 * Copying script.js with rest service if Rest Service is
-				 * enabled
+				 * Spring MVC Code Copying
 				 */
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("Spring")) {
+					/*
+					 * WebContent
+					 */
+					createFolder(container, "/WebContent/jsp");
+					copyDirectory(templatePath
+							+ "/PresentationLayer/Spring MVC/common/css",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/WebContent/css");
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/Spring MVC/common/jsp/customerList.jsp.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/jsp/customerList.jsp", data);
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/Spring MVC/common/jsp/customerAdd.jsp.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/jsp/customerAdd.jsp", data);
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/Spring MVC/common/jsp/customerEdit.jsp.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/jsp/customerEdit.jsp", data);
+					if (applicationFrameworkSelectorWizard.getBtnSpring()
+							.getSelection()) {
+						data.put("ApplicationContext",
+								"<import resource=\"classpath://applicationContext.xml\"/>");
+					}
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/Spring MVC/common/WEB-INF/${projectName}-servlet.xml.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/WebContent/WEB-INF/"
+									+ webProjectName + "-servlet.xml", data);
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/Spring MVC/common/WEB-INF/web.xml.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/web.xml", data);
+					String filePath = workspace.getRoot().getLocation()
+							.toString()
+							+ "/"
+							+ webProjectName
+							+ "/WebContent/WEB-INF/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("springMVCConfiguration", value);
 
-				copyTemplate(templatePath
-						+ "/PresentationLayer/RestService/js/script.js.ftl",
-						workspace.getRoot().getLocation().toString() + "/"
-								+ projectName + "/WebContent/js/script.js",
-						data);
-				copyTemplate(
-						templatePath
-								+ "/ApplicationLayer/RestService/src/com/app/customer/rest/service/DaoService.ftl",
-						workspace.getRoot().getLocation().toString()
+					/*
+					 * Src
+					 */
+					copyDirectory(templatePath
+							+ "/PresentationLayer/Spring MVC/common/src",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/src/");
+					createFolder(container, "src/com/app");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/controller");
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						log.debug("Test--->>>>");
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("Service",
+									"com.app.customer.lookup.CustomerLookup");
+						}
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Spring MVC/Pojo/src"
+										+ "/com/app/customer/controller/CustomerController.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/controller/CustomerController.java",
+								data);
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnRestService().getSelection()) {
+
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("Rest_URL", "serviceController");
+						}
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Spring MVC/Rest/src"
+										+ "/com/app/customer/controller/CustomerController.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/controller/CustomerController.java",
+								data);
+						/*
+						 * copyDirectory(templatePath +
+						 * "/PresentationLayer/Spring MVC/Rest/src",
+						 * workspace.getRoot().getLocation().toString() + "/" +
+						 * webProjectName + "/src/");
+						 */
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnSoapService().getSelection()) {
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Spring MVC/Soap/src"
+										+ "/com/app/customer/controller/CustomerController.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/controller/CustomerController.java",
+								data);
+						/*
+						 * copyDirectory(templatePath +
+						 * "/PresentationLayer/Spring MVC/Soap/src",
+						 * workspace.getRoot().getLocation().toString() + "/" +
+						 * webProjectName + "/src/");
+						 */
+					}
+					if (!applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()
+							&& persistenceFrameworkSelectorWizard.getBtnJpa()
+									.getSelection()) {
+						data.put("importDateTimeFormat",
+								"import org.springframework.format.annotation.DateTimeFormat;");
+						data.put("dateTimeFormatAnnotation",
+								"@DateTimeFormat(pattern = \"dd/MM/yyyy\")");
+
+						/*
+						 * Copying the libraries
+						 */
+						copyDirectory(templatePath + "/lib/Spring/common",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+						copyDirectory(templatePath + "/lib/Spring/MVC",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+					} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()) {
+						/*
+						 * Copying the libraries
+						 */
+						copyFile(
+								templatePath + "/lib/common/jstl-1.2.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/WebContent/WEB-INF/lib/jstl-1.2.jar");
+						copyFile(
+								templatePath
+										+ "/lib/Spring/MVC/spring-web-4.1.6.RELEASE.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/WebContent/WEB-INF/lib/spring-web-4.1.6.RELEASE.jar");
+						copyFile(
+								templatePath
+										+ "/lib/Spring/MVC/spring-webmvc-4.1.6.RELEASE.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/WebContent/WEB-INF/lib/spring-webmvc-4.1.6.RELEASE.jar");
+					} else if (persistenceFrameworkSelectorWizard.getBtnJpa()
+							.getSelection()) {
+						/*
+						 * Copying the libraries
+						 */
+						copyFile(
+								templatePath + "/lib/common/jstl-1.2.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/WebContent/WEB-INF/lib/jstl-1.2.jar");
+						/*
+						 * copyDirectory(templatePath + "/lib/Spring/common",
+						 * workspace.getRoot().getLocation().toString() + "/" +
+						 * webProjectName + "/WebContent/WEB-INF/lib/");
+						 */
+						copyDirectory(templatePath + "/lib/Spring/MVC",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+					} else {
+						data.put("importDateTimeFormat",
+								"import org.springframework.format.annotation.DateTimeFormat;");
+						data.put("dateTimeFormatAnnotation",
+								"@DateTimeFormat(pattern = \"dd/MM/yyyy\")");
+						/*
+						 * Copying the libraries
+						 */
+						copyDirectory(templatePath + "/lib/Spring/MVC",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+					}
+
+				}
+
+				/*
+				 * Application Layer - Spring IOC
+				 */
+				if (applicationFrameworkSelectorWizard.getBtnSpring()
+						.getSelection()) {
+					data.put("customerDaoObject",
+							"(CustomerDao) BootStrapper.getService().getBean(\"CustomerDao\")");
+					/*
+					 * Copying the libraries
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()) {
+
+						copyDirectory(templatePath + "/lib/Spring/common",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + webProjectName
+										+ "/WebContent/WEB-INF/lib/");
+					}
+					if (persistenceFrameworkSelectorWizard.getBtnJpa()
+							.getSelection())
+
+					{
+						data.put("Imports",
+								"import com.app.customer.util.BootStrapper;");
+						data.put("JNDI_Lookup",
+								"BootStrapper.getService().getBean(\"CustomerService\")");
+					}
+
+				} else {
+					data.put("customerDaoObject", "new CustomerDaoImpl()");
+				}
+
+				/*
+				 * Application Layer - EJB
+				 */
+				if (applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+					data.put("APP_NAME", earProjectName);
+					/**
+					 * Set EJB in Web Meta-Inf Manifest Entries
+					 */
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/Jsf/common/META-INF/MANIFEST.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/META-INF/MANIFEST.MF", data);
+					/**
+					 * JBoss client Lib
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnSoapService()
+							.getSelection()) {
+						copyFile(
+								templatePath + "/lib/Jboss/jboss-client.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/WebContent/WEB-INF/lib/jboss-client.jar");
+						copyFile(
+								templatePath + "/lib/Jboss/servlet-api.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/WebContent/WEB-INF/lib/servlet-api.jar");
+					} else {
+						copyDirectory(templatePath + "/lib/Jboss", workspace
+								.getRoot().getLocation().toString()
 								+ "/"
-								+ projectName
-								+ "/src/com/app/customer/rest/service/DaoService.java",
-						data);
-				String filePath = templatePath
-						+ "/ApplicationLayer/RestService/web.xml";
-				StringBuilder value = loadDeploymentDescriptorData(filePath);
-				data.put("restServiceConfiguration", value);
+								+ webProjectName
+								+ "/WebContent/WEB-INF/lib/");
+					}
+					/*
+					 * Copy EJB Web Module Files
+					 */
+					copyEJBWebFiles(webProjectName, templatePath, workspace,
+							data, container);
+
+					/*
+					 * Web Xml Configuration
+					 */
+					data.put("Absolute_Ordering", "");
+					String filePath = templatePath
+							+ "/ApplicationLayer/Ejb/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("RestEasyConfig", value);
+
+				}
 
 				/*
-				 * Copying the libraries
+				 * JSF
 				 */
-				copyDirectory(templatePath + "/lib/Rest Service", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/lib/");
-			}
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("JSF")) {
+					/*
+					 * WebContent
+					 */
+					copyDirectory(templatePath
+							+ "/PresentationLayer/Jsf/common/css", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/css/");
+					createFolder(container, "/WebContent/pages");
+					copyDirectory(templatePath
+							+ "/PresentationLayer/Jsf/common/pages", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/pages/");
+					copyTemplate(templatePath
+							+ "/PresentationLayer/Jsf/common/index.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/WebContent/index.jsp",
+							data);
+					/*
+					 * copyFile(templatePath +
+					 * "/PresentationLayer/Jsf/common/index.jsp",
+					 * workspace.getRoot().getLocation().toString() + "/" +
+					 * webProjectName + "/WebContent/index.jsp");
+					 */
+					String filePath = templatePath
+							+ "/PresentationLayer/Jsf/common/WEB-INF/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("JSFConfiguration", value);
+					data.put("welcomeFile", "index.jsp");
 
-			/*
-			 * Data Layer - Hibernate
-			 */
-			if (persistenceFrameworkSelectorWizard.getBtnHibernate()
-					.getSelection()) {
-				copyDirectory(templatePath + "/DataLayer/Hibernate", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/src/");
+					/*
+					 * Src
+					 */
+					createFolder(container, "src/com");
+					createFolder(container, "src/com/app");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/mbean");
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("Service",
+									"com.app.customer.lookup.CustomerLookup");
+						}
+
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Jsf/common/src/com/app/customer/mbean/CustomerBean.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/mbean/CustomerBean.java",
+								data);
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnRestService().getSelection()) {
+
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("Rest_URL", "serviceController");
+						}
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Jsf/Rest/src/com/app/customer/mbean/CustomerBean.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/mbean/CustomerBean.java",
+								data);
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnSoapService().getSelection()) {
+						/*
+						 * copyDirectory(templatePath +
+						 * "/PresentationLayer/Jsf/Soap/src", workspace
+						 * .getRoot().getLocation().toString() + "/" +
+						 * webProjectName + "/src/");
+						 */
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Jsf/Soap/src/com/app/customer/mbean/CustomerBean.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/mbean/CustomerBean.java",
+								data);
+					}
+
+					copyFile(
+							templatePath
+									+ "/PresentationLayer/Jsf/common/src/ApplicationResources.properties",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/src/ApplicationResources.properties");
+					copyFile(
+							templatePath
+									+ "/PresentationLayer/Jsf/common/src/ApplicationResources_en.properties",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/src/ApplicationResources_en.properties");
+
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/JSF", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+				}
+
 				/*
-				 * Copying the libraries
+				 * Struts - Presentation Layer
 				 */
-				copyDirectory(templatePath + "/lib/Hibernate", workspace
-						.getRoot().getLocation().toString()
-						+ "/" + projectName + "/WebContent/WEB-INF/lib/");
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("Struts")) {
+
+					/*
+					 * WebContent
+					 */
+					copyDirectory(templatePath
+							+ "/PresentationLayer/Struts/common/css", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/css/");
+					copyDirectory(templatePath + "/PresentationLayer/images",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/WebContent/images/");
+					createFolder(container, "/WebContent/pages");
+					copyDirectory(templatePath
+							+ "/PresentationLayer/Struts/common/pages",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/WebContent/pages/");
+					/*
+					 * copyFile(templatePath +
+					 * "/PresentationLayer/Struts/common/index.jsp",
+					 * workspace.getRoot().getLocation().toString() + "/" +
+					 * webProjectName + "/WebContent/index.jsp");
+					 */
+					copyTemplate(templatePath
+							+ "/PresentationLayer/Struts/common/index.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName + "/WebContent/index.jsp",
+							data);
+					String filePath = templatePath
+							+ "/PresentationLayer/Struts/common/WEB-INF/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("welcomeFile", "index.jsp");
+					data.put("StrutsConfiguration", value);
+					if (applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/rest/.*,/BusinessDelegator.*,/serviceController.*\"/>");
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnSoapService().getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection()) {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/BusinessDelegator.*,/customerService.*,/serviceController.*\"/>");
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnRestService().getSelection()
+							&& applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/rest/.*,/BusinessDelegator.*,/customerService.*,/serviceController.*\"/>");
+					} else {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/serviceController.*\"/>");
+					}
+					/*
+					 * Src
+					 */
+					createFolder(container, "src/com");
+					createFolder(container, "src/com/app");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/mbean");
+					String strutsPath = null;
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						strutsPath = "common";
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("Service",
+									"com.app.customer.lookup.CustomerLookup");
+						}
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnRestService().getSelection()) {
+						strutsPath = "Rest";
+						if (applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+							data.put("Rest_URL", "serviceController");
+						}
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnSoapService().getSelection()) {
+						strutsPath = "Soap";
+					}
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/Struts/"
+									+ strutsPath
+									+ "/src/com/app/customer/mbean/CustomerBean.ftl",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ webProjectName
+									+ "/src/com/app/customer/mbean/CustomerBean.java",
+							data);
+					copyFile(templatePath + "/PresentationLayer/Struts/"
+							+ strutsPath
+							+ "/src/ApplicationResources.properties", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ webProjectName
+							+ "/src/ApplicationResources.properties");
+					copyFile(templatePath + "/PresentationLayer/Struts/"
+							+ strutsPath
+							+ "/src/ApplicationResources_en.properties",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/src/ApplicationResources_en.properties");
+					copyTemplate(templatePath + "/PresentationLayer/Struts/"
+							+ strutsPath + "/src/struts.ftl", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/src/struts.xml", data);
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Struts", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+					/*
+					 * Copying common libraries
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()) {
+						copyDirectory(templatePath + "/lib/common", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ webProjectName
+								+ "/WebContent/WEB-INF/lib/");
+					}
+
+				}
+
+				/*
+				 * Data Layer - Hibernate
+				 */
+				if (persistenceFrameworkSelectorWizard.getBtnHibernate()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection())
+
+				{
+					/*
+					 * if
+					 * (!applicationFrameworkSelectorWizard.getBtnRestService()
+					 * .getSelection() && !applicationFrameworkSelectorWizard
+					 * .getBtnSoapService().getSelection()) {
+					 */
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Hibernate", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+					/*
+					 * Copy Database Lib
+					 */
+					copyDatabaseLib(webProjectName, templatePath, workspace,
+							data);
+
+					// }
+				}
+				/*
+				 * Data Layer - JPA
+				 */
+				if (persistenceFrameworkSelectorWizard.getBtnJpa()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+					/*
+					 * if
+					 * (!applicationFrameworkSelectorWizard.getBtnRestService()
+					 * .getSelection() && !applicationFrameworkSelectorWizard
+					 * .getBtnSoapService().getSelection()) {
+					 */
+
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/JPA", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+					copyFile(templatePath + "/lib/common/antlr-2.7.5.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/lib/antlr-2.7.5.jar");
+					copyFile(
+							templatePath + "/lib/common/commons-logging.jar",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/lib/commons-logging.jar");
+					copyFile(templatePath + "/lib/common/dom4j-1.6.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/lib/dom4j-1.6.jar");
+					/*
+					 * copyFile(templatePath + "/lib/Hibernate/hibernate3.jar",
+					 * workspace .getRoot().getLocation().toString() + "/" +
+					 * projName + "/lib/hibernate3.jar");
+					 */
+					copyFile(templatePath + "/lib/common/HexLogger.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/lib/HexLogger.jar");
+					copyFile(templatePath
+							+ "/lib/Struts/javassist-3.18.1-GA.jar", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ webProjectName
+							+ "/WebContent/WEB-INF/lib/javassist-3.18.1-GA.jar");
+					copyFile(
+							templatePath
+									+ "/lib/Hibernate/javax-transaction-api.jar",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/lib/javax-transaction-api.jar");
+					copyFile(
+							templatePath + "/lib/common/log4j-1.2.16.jar",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ webProjectName
+									+ "/WebContent/WEB-INF/lib/log4j-1.2.16.jar");
+
+					/*
+					 * Copy Database Lib
+					 */
+
+					copyDatabaseLib(webProjectName, templatePath, workspace,
+							data);
+
+					// }
+				}
+
+				/*
+				 * Application Layer - Rest Service
+				 */
+
+				if (applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+
+					String filePath = templatePath
+							+ "/ApplicationLayer/RestService/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("restServiceConfiguration", value);
+
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Rest Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+				}
+
+				/*
+				 * Application Layer - SOAP Service
+				 */
+				if (applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+					createFolder(container, "src/com");
+					createFolder(container, "src/com/app");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/stub");
+					copySOAPStubFiles(templatePath, workspace, data,
+							webProjectName);
+
+					String filePath = templatePath
+							+ "/ApplicationLayer/SoapService/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("soapServiceConfiguration", value);
+
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Soap Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+				}
+
+				/*
+				 * if (!applicationFrameworkSelectorWizard.getBtnEjb()
+				 * .getSelection() &&
+				 * !persistenceFrameworkSelectorWizard.getBtnJpa()
+				 * .getSelection()) {
+				 */
+				if (!applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+					/*
+					 * Copying common libraries
+					 */
+					copyDirectory(templatePath + "/lib/common", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+					copyDirectory(templatePath + "/lib/Rest Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/" + webProjectName + "/WebContent/WEB-INF/lib/");
+				}
+
+				/*
+				 * Copying common Files
+				 */
+				if ((presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText()
+						.equals("SPA-Angular JS") && applicationFrameworkSelectorWizard
+						.getBtnSoapService().getSelection())
+						|| (!presentationFrameworkSelectorWizard
+								.getComboWebAppFramework().getText()
+								.equals("SPA-Angular JS"))) {
+					createFolder(container, "src/com");
+					createFolder(container, "src/com/app");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/vo");
+
+					if (!applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()
+							&& !persistenceFrameworkSelectorWizard.getBtnJpa()
+									.getSelection()) {
+						copyTemplate(
+								templatePath
+										+ "/common/src/com/app/customer/vo/Customer.java.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/vo/Customer.java",
+								data);
+					} else if (!applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()) {
+						copyTemplate(
+								templatePath
+										+ "/DataLayer/JPA/com/app/customer/vo/Customer.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ webProjectName
+										+ "/src/com/app/customer/vo/Customer.java",
+								data);
+					}
+
+				}
+
+				createFolder(container, "src/com");
+				createFolder(container, "src/com/app");
+				createFolder(container, "src/com/app/framework");
+				copyCommonFiles(templatePath, workspace, data, webProjectName);
+
+				/*
+				 * Copying web.xml file.
+				 */
+				String xmlTemplateFile = templatePath
+						+ "/common/presentation/web.xml.ftl";
+				String outputFile = workspace.getRoot().getLocation()
+						.toString()
+						+ "/" + webProjectName + "/WebContent/WEB-INF/web.xml";
+				System.out.println("----===>>>"
+						+ data.get("springMVCConfiguration"));
+				copyTemplate(xmlTemplateFile, outputFile, data);
+
+				/*
+				 * Cross Cutting Features - Instrumentation
+				 */
+				/*
+				 * if
+				 * (crosscuttingConcernsSelectorWizard.getBtnInstrumentation()
+				 * .getSelection()) { copyCrossCuttingFeatureFiles(templatePath,
+				 * workspace, webProjectName); copyDirectory(templatePath +
+				 * "/lib/Instrumentation",
+				 * workspace.getRoot().getLocation().toString() + "/" +
+				 * webProjectName + "/WebContent/WEB-INF/lib/"); }
+				 */
+
+			} catch (
+
+			Exception ioe) {
+				ioe.printStackTrace();
+				log.error("Project is not created" + ioe.getMessage());
+				IStatus status = new Status(IStatus.ERROR,
+						"JavaSoftwareFactory", IStatus.OK,
+						ioe.getLocalizedMessage(), ioe);
+				throw new CoreException(status);
 			}
 
-			/*
-			 * Copying common libraries
-			 */
-			copyDirectory(templatePath + "/lib/common", workspace.getRoot()
-					.getLocation().toString()
-					+ "/" + projectName + "/WebContent/WEB-INF/lib/");
+			addWebNatures(proj);
+			BasicNewProjectResourceWizard
+					.updatePerspective(_configurationElement);
+			IResource resour = ResourcesPlugin.getWorkspace().getRoot();
 
-			/*
-			 * Copying common Files
-			 */
-			copyTemplate(templatePath
-					+ "/common/src/com/app/customer/vo/Customer.java.ftl",
-					workspace.getRoot().getLocation().toString() + "/"
-							+ projectName
-							+ "/src/com/app/customer/vo/Customer.java", data);
-			copyDirectory(templatePath + "/common/src/com/app/framework",
-					workspace.getRoot().getLocation().toString() + "/"
-							+ projectName + "/src/com/app/framework");
+			resour.refreshLocal(IResource.DEPTH_INFINITE, null);
+		} catch (
 
-			/*
-			 * Copying web.xml file.
-			 */
-			String xmlTemplateFile = templatePath + "/common/web.xml.ftl";
-			String outputFile = workspace.getRoot().getLocation().toString()
-					+ "/" + projectName + "/WebContent/WEB-INF/web.xml";
-			System.out.println("----===>>>"
-					+ data.get("springMVCConfiguration"));
-			copyTemplate(xmlTemplateFile, outputFile, data);
-
-		} catch (Exception ioe) {
+		Exception ioe) {
 			ioe.printStackTrace();
-			log.error("Project is not created" + ioe.getMessage());
+			log.error("Excepton in createWebProject method" + ioe.getMessage());
 			IStatus status = new Status(IStatus.ERROR, "JavaSoftwareFactory",
 					IStatus.OK, ioe.getLocalizedMessage(), ioe);
 			throw new CoreException(status);
 		}
 	}
 
-	private StringBuilder loadDeploymentDescriptorData(String filePath)
+	private void createWebServiceProject(IProject proj) throws CoreException,
+			OperationCanceledException {
+		try {
+			System.out.println("Inside Create Web Project");
+			URI projectURI = (!newProjectWizard.useDefaults()) ? newProjectWizard
+					.getLocationURI() : null;
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			if (proj == null) {
+				throw new Exception("Application Exception : IProject is null");
+			}
+			projDesc = workspace.newProjectDescription(proj.getName());
+			projDesc.setLocationURI(projectURI);
+			proj.create(projDesc, null);
+			proj.open(IResource.BACKGROUND_REFRESH, null);
+
+			if (!applicationFrameworkSelectorWizard.getBtnRestService()
+					.getSelection()
+					&& !applicationFrameworkSelectorWizard.getBtnSoapService()
+							.getSelection()) {
+				IFacetedProject iFacetedProject = (IFacetedProject) ProjectFacetsManager
+						.create(proj.getProject(), true, null);
+				IProjectFacet JAVA_FACET = ProjectFacetsManager
+						.getProjectFacet("jst.java");
+				iFacetedProject.installProjectFacet(
+						JAVA_FACET.getVersion("1.7"), null, monitor);
+				addJavaNatures(proj);
+
+			} else {
+				IFacetedProject iFacetedProject = (IFacetedProject) ProjectFacetsManager
+						.create(proj.getProject(), true, null);
+
+				IProjectFacet JAVA_FACET = ProjectFacetsManager
+						.getProjectFacet("jst.java");
+				IProjectFacet WEB_FACET = ProjectFacetsManager
+						.getProjectFacet("jst.web");
+
+				iFacetedProject.installProjectFacet(
+						JAVA_FACET.getVersion("1.7"), null, monitor);
+				iFacetedProject.installProjectFacet(
+						WEB_FACET.getVersion("3.0"), null, monitor);
+				addWebNatures(proj);
+			}
+
+			/*
+			 * Generating Files for Service Project from template
+			 */
+
+			try {
+				IContainer container = (IContainer) proj;
+
+				createFolder(container, "src/com");
+				createFolder(container, "src/com/app");
+				createFolder(container, "src/com/app/customer");
+				createFolder(container, "src/com/app/customer/vo");
+				createFolder(container, "src/com/app/customer/util");
+				createFolder(container, "src/com/app/customer/service");
+
+				log.info("WORKSPACE : ", workspace.getRoot().getLocation()
+						.toString());
+
+				System.out.println("Webservice workspace------->>>>>>>>>."
+						+ workspace.getRoot().getLocation().toString());
+				log.info("Application Name : " + serviceProjectName);
+				String templatePath = ConfigHandler.getInstance()
+						.getSystemProperty("template.location");
+				log.info("Template Path : " + templatePath);
+
+				Map<String, Object> data = new HashMap<String, Object>();
+				data.put("serviceProjectName", serviceProjectName);
+				data.put("projectName", serviceProjectName);
+				data.put("serverHost", "http://localhost:8080/");
+				data.put("importDateTimeFormat", "");
+				data.put("dateTimeFormatAnnotation", "");
+				data.put("jsonFormatAnnotation", "");
+				data.put("importJsonFormat", "");
+				data.put("restServiceConfiguration", "");
+				data.put("springMVCConfiguration", "");
+				data.put("JSFConfiguration", "");
+				data.put("StrutsConfiguration", "");
+				data.put("soapServiceConfiguration", "");
+				data.put("welcomeFile", "");
+				data.put("instrumentationBean", "");
+				data.put("Constant_Rest", "");
+				data.put("APP_NAME", "");
+				// data.put("ApplicationContext", "");
+				data.put("EJB_Imports", "");
+				data.put("Imports", "");
+				data.put("JNDI_Lookup", "");
+				data.put("Stateless", "");
+				data.put("Remote", "");
+				data.put("EJB", "");
+				data.put("JTA_Datasource", "");
+				data.put("url", url);
+				data.put("userName", userName);
+				data.put("password", password);
+				data.put("Driver", "");
+				data.put("Dialect", "");
+				data.put("dataBaseLib", "");
+				data.put("springLib", "");
+				data.put("jbossLib", "");
+				data.put("hibernateLib", "");
+				data.put("instrumentationLib", "");
+				data.put("restLib", "");
+				data.put("soapLib", "");
+				data.put("springMvcLib", "");
+				data.put("jsfLib", "");
+				data.put("strutsLib", "");
+				data.put("pojoLib", "");
+				data.put("jpaLib", "");
+				data.put("additionalLib", "");
+				data.put("RestEasyConfig", "");
+				data.put(
+						"Absolute_Ordering",
+						"<absolute-ordering>\n<name>HJSF_Framework</name>\n<others/>\n</absolute-ordering>");
+				data.put("Rest_URL", "rest");
+				data.put("Service", "com.app.customer.service.CustomerImpl");
+				data.put("webServiceReferer", "Service/");
+				data.put("validationLib", "");
+				data.put("cacheLib", "");
+				data.put("notificationLib", "");
+				data.put("AuthenticationLib", "");
+				/*
+				 * Spring MVC Code Copying
+				 */
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("Spring")) {
+					/*
+					 * WebContent
+					 */
+					if (applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							|| applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						copyTemplate(
+								templatePath
+										+ "/PresentationLayer/Spring MVC/common/WEB-INF/web.xml.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/WebContent/WEB-INF/web.xml", data);
+						String filePath = workspace.getRoot().getLocation()
+								.toString()
+								+ "/"
+								+ serviceProjectName
+								+ "/WebContent/WEB-INF/web.xml";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("springMVCConfiguration", value);
+
+					}
+
+					/*
+					 * Src
+					 */
+					copyDirectory(templatePath
+							+ "/PresentationLayer/Spring MVC/common/src",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName + "/src/");
+
+					if (!applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()
+							&& !persistenceFrameworkSelectorWizard.getBtnJpa()
+									.getSelection()) {
+						data.put("importDateTimeFormat",
+								"import org.springframework.format.annotation.DateTimeFormat;");
+						data.put("dateTimeFormatAnnotation",
+								"@DateTimeFormat(pattern = \"dd/MM/yyyy\")");
+
+						/*
+						 * Copying the libraries
+						 */
+
+						if (!applicationFrameworkSelectorWizard
+								.getBtnRestService().getSelection()
+								&& !applicationFrameworkSelectorWizard
+										.getBtnSoapService().getSelection()) {
+							createFolder(container, "/lib/");
+							copyDirectory(templatePath + "/lib/Spring/common",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/lib/");
+
+							String filePath1 = templatePath
+									+ "/PresentationLayer/CommonClasspath/Spring.classpath";
+							StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+							data.put("springLib", value1);
+
+							copyDirectory(templatePath + "/lib/Spring/MVC",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/lib/");
+
+							String filePath2 = templatePath
+									+ "/PresentationLayer/CommonClasspath/SpringMvc.classpath";
+							StringBuilder value2 = loadDeploymentDescriptorData(filePath2);
+							data.put("springMvcLib", value2);
+
+						} else {
+							copyDirectory(templatePath + "/lib/Spring/common",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/WebContent/WEB-INF/lib/");
+							copyDirectory(templatePath + "/lib/Spring/MVC",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/WebContent/WEB-INF/lib/");
+						}
+					} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()) {
+						/*
+						 * Copying the libraries
+						 */
+						copyFile(
+								templatePath + "/lib/common/jstl-1.2.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ serviceProjectName
+										+ "/WebContent/WEB-INF/lib/jstl-1.2.jar");
+						copyFile(
+								templatePath
+										+ "/lib/Spring/MVC/spring-web-4.1.6.RELEASE.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ serviceProjectName
+										+ "/WebContent/WEB-INF/lib/spring-web-4.1.6.RELEASE.jar");
+						copyFile(
+								templatePath
+										+ "/lib/Spring/MVC/spring-webmvc-4.1.6.RELEASE.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ serviceProjectName
+										+ "/WebContent/WEB-INF/lib/spring-webmvc-4.1.6.RELEASE.jar");
+					} else if (persistenceFrameworkSelectorWizard.getBtnJpa()
+							.getSelection()
+							&& (applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection() || applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection())) {
+						/*
+						 * Copying the libraries
+						 */
+						copyFile(
+								templatePath + "/lib/common/jstl-1.2.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ serviceProjectName
+										+ "/WebContent/WEB-INF/lib/jstl-1.2.jar");
+						copyDirectory(templatePath + "/lib/Spring/common",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/WebContent/WEB-INF/lib/");
+						copyDirectory(templatePath + "/lib/Spring/MVC",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/WebContent/WEB-INF/lib/");
+					}
+
+				}
+
+				/*
+				 * Application Layer - Spring IOC
+				 */
+				if (applicationFrameworkSelectorWizard.getBtnSpring()
+						.getSelection()) {
+
+					copySpringIOCFiles(templatePath, workspace, data,
+							serviceProjectName);
+					/*
+					 * Copying the libraries
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						createFolder(container, "lib");
+						copyDirectory(templatePath + "/lib/Spring/common",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName + "/lib/");
+						String filePath3 = templatePath
+								+ "/PresentationLayer/CommonClasspath/Spring.classpath";
+						StringBuilder value1 = loadDeploymentDescriptorData(filePath3);
+						data.put("springLib", value1);
+					}
+
+					if (!applicationFrameworkSelectorWizard.getBtnEjb()
+							.getSelection()
+							&& (applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection() || applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection())) {
+						copyDirectory(templatePath + "/lib/Spring/common",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/WebContent/WEB-INF/lib/");
+					}
+				} else {
+					data.put("customerDaoObject", "new CustomerDaoImpl()");
+				}
+
+				/*
+				 * Application Layer - EJB
+				 */
+				if (applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+					data.put("APP_NAME", earProjectName);
+					/**
+					 * Set EJB in Web Meta-Inf Manifest Entries
+					 */
+					copyTemplate(templatePath
+							+ "/PresentationLayer/Jsf/META-INF/MANIFEST.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName
+									+ "/WebContent/META-INF/MANIFEST.MF", data);
+					/**
+					 * JBoss client Lib
+					 */
+					copyDirectory(templatePath + "/lib/Jboss", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ serviceProjectName
+							+ "/WebContent/WEB-INF/lib/");
+				}
+
+				/*
+				 * JSF
+				 */
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("JSF")) {
+					/*
+					 * WebContent
+					 */
+
+					if (applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							|| applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						String filePath = templatePath
+								+ "/PresentationLayer/Jsf/common/WEB-INF/web.xml";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("JSFConfiguration", value);
+						data.put("welcomeFile", "index.jsp");
+					}
+					/*
+					 * Copying the libraries
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						createFolder(container, "/lib/");
+						copyDirectory(templatePath + "/lib/JSF", workspace
+								.getRoot().getLocation().toString()
+								+ "/" + serviceProjectName + "/lib/");
+						String filePath1 = templatePath
+								+ "/PresentationLayer/CommonClasspath/Jsf.classpath";
+						StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+						data.put("jsfLib", value1);
+
+					} else {
+						copyDirectory(templatePath + "/lib/JSF", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ serviceProjectName
+								+ "/WebContent/WEB-INF/lib/");
+					}
+				}
+
+				/*
+				 * Struts - Presentation Layer
+				 */
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("Struts")) {
+					/*
+					 * WebContent
+					 */
+
+					if (applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							|| applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						String filePath = templatePath
+								+ "/PresentationLayer/Struts/common/WEB-INF/web.xml";
+						StringBuilder value = loadDeploymentDescriptorData(filePath);
+						data.put("welcomeFile", "index.jsp");
+						data.put("StrutsConfiguration", value);
+					}
+					if (applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/rest/.*,/BusinessDelegator.*,/serviceController.*\"/>");
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnSoapService().getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnRestService().getSelection()) {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/customerService.*\"/>");
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnRestService().getSelection()
+							&& applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/rest/.*,/customerService.*\"/>");
+					} else {
+						data.put(
+								"Constant_Rest",
+								"<constant name=\"struts.action.excludePattern\" value=\"/serviceController.*\"/>");
+					}
+					/*
+					 * Src
+					 */
+					String strutsPath = null;
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						strutsPath = "common";
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnRestService().getSelection()) {
+						strutsPath = "Rest";
+					} else if (applicationFrameworkSelectorWizard
+							.getBtnSoapService().getSelection()) {
+						strutsPath = "Soap";
+					}
+
+					/*
+					 * Copying the libraries
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						copyDirectory(templatePath + "/lib/Struts", workspace
+								.getRoot().getLocation().toString()
+								+ "/" + serviceProjectName + "/lib/");
+						String filePath1 = templatePath
+								+ "/PresentationLayer/CommonClasspath/Struts.classpath";
+						StringBuilder value1 = loadDeploymentDescriptorData(filePath1);
+						data.put("strutsLib", value1);
+
+					} else {
+						copyDirectory(templatePath + "/lib/Struts", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ serviceProjectName
+								+ "/WebContent/WEB-INF/lib/");
+					}
+
+				}
+
+				/*
+				 * Application Layer - Rest Service
+				 */
+
+				if (applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()) {
+
+					copyRestServiceFiles(templatePath, workspace, data,
+							serviceProjectName);
+
+					String filePath = templatePath
+							+ "/ApplicationLayer/RestService/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("restServiceConfiguration", value);
+
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Rest Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ serviceProjectName
+							+ "/WebContent/WEB-INF/lib/");
+				}
+
+				/*
+				 * Application Layer - SOAP Service
+				 */
+				if (applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+
+					copySOAPServiceFiles(templatePath, workspace, data,
+							serviceProjectName);
+
+					copyFile(
+							templatePath
+									+ "/ApplicationLayer/SoapService/WEB-INF/sun-jaxws.xml",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName
+									+ "/WebContent/WEB-INF/sun-jaxws.xml");
+					String filePath = templatePath
+							+ "/ApplicationLayer/SoapService/web.xml";
+					StringBuilder value = loadDeploymentDescriptorData(filePath);
+					data.put("soapServiceConfiguration", value);
+
+					/*
+					 * Copying the libraries
+					 */
+					copyDirectory(templatePath + "/lib/Soap Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ serviceProjectName
+							+ "/WebContent/WEB-INF/lib/");
+				}
+
+				/*
+				 * Data Layer - Hibernate
+				 */
+				if (persistenceFrameworkSelectorWizard.getBtnHibernate()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+					createFolder(container, "src/com");
+					createFolder(container, "src/com/app");
+					createFolder(container, "src/com/app/customer");
+					createFolder(container, "src/com/app/customer/dao");
+					copyHibernateFiles(templatePath, workspace, data,
+							serviceProjectName);
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						/*
+						 * Copying the libraries
+						 */
+						copyDirectory(templatePath + "/lib/Hibernate",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName + "/lib/");
+
+						String filePath1 = templatePath
+								+ "/PresentationLayer/CommonClasspath/Hibernate.classpath";
+						StringBuilder value2 = loadDeploymentDescriptorData(filePath1);
+						data.put("hibernateLib", value2);
+
+						if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+							copyDirectory(templatePath + "/lib/MySQL",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/lib/");
+							data.put(
+									"dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/mysql-connector-java-5.1.15-bin.jar\"/>");
+						} else if (dataBaseSelectorWizard.btnMicrosoftSqlServer
+								.getSelection()) {
+							copyDirectory(templatePath + "/lib/SQL", workspace
+									.getRoot().getLocation().toString()
+									+ "/" + serviceProjectName + "/lib/");
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/sqljdbc4-4.0.jar\"/>");
+						} else if (dataBaseSelectorWizard.getBtnOracle()
+								.getSelection()) {
+							copyDirectory(templatePath + "/lib/Oracle",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/lib/");
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/ojdbc6.jar\"/>");
+						}
+					} else {
+
+						/*
+						 * Copying the libraries
+						 */
+
+						copyDirectory(templatePath + "/lib/Hibernate",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/WebContent/WEB-INF/lib/");
+						/*
+						 * Copy Database Lib
+						 */
+
+						if (!presentationFrameworkSelectorWizard
+								.getBtnDesktopApplication().getSelection()) {
+							copyDatabaseLib(serviceProjectName, templatePath,
+									workspace, data);
+						} else {
+							if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+								copyDirectory(templatePath + "/lib/MySQL",
+										workspace.getRoot().getLocation()
+												.toString()
+												+ "/"
+												+ serviceProjectName
+												+ "/WebContent/WEB-INF/lib/");
+							} else if (dataBaseSelectorWizard.btnMicrosoftSqlServer
+									.getSelection()) {
+								copyDirectory(templatePath + "/lib/SQL",
+										workspace.getRoot().getLocation()
+												.toString()
+												+ "/"
+												+ serviceProjectName
+												+ "/WebContent/WEB-INF/lib/");
+							} else if (dataBaseSelectorWizard.getBtnOracle()
+									.getSelection()) {
+								copyDirectory(templatePath + "/lib/Oracle",
+										workspace.getRoot().getLocation()
+												.toString()
+												+ "/"
+												+ serviceProjectName
+												+ "/WebContent/WEB-INF/lib/");
+							}
+						}
+					}
+
+				}
+
+				/*
+				 * Data Layer - JPA
+				 */
+				if (persistenceFrameworkSelectorWizard.getBtnJpa()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard.getBtnEjb()
+								.getSelection()) {
+					createFolder(container, "src/com/app/framework");
+					createFolder(container, "src/com/app/customer/util");
+					createFolder(container, "src/com/app/customer/dao");
+					copyTemplate(
+							templatePath
+									+ "/ApplicationLayer/Ejb/common/com/app/customer/util/GlobalConstants.ftl",
+							workspace.getRoot().getLocation().toString()
+									+ "/"
+									+ serviceProjectName
+									+ "/src/com/app/customer/util/GlobalConstants.java",
+							data);
+					if (presentationFrameworkSelectorWizard
+							.getComboWebAppFramework().getText()
+							.equals("Spring")) {
+						data.put("importDateTimeFormat",
+								"import org.springframework.format.annotation.DateTimeFormat;");
+						data.put("dateTimeFormatAnnotation",
+								"@DateTimeFormat(pattern = \"dd/MM/yyyy\")");
+						copyTemplate(
+								templatePath
+										+ "/DataLayer/JPA/com/app/customer/vo/Customer.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ serviceProjectName
+										+ "/src/com/app/customer/vo/Customer.java",
+								data);
+					} else {
+						copyTemplate(
+								templatePath
+										+ "/DataLayer/JPA/com/app/customer/vo/Customer.ftl",
+								workspace.getRoot().getLocation().toString()
+										+ "/"
+										+ serviceProjectName
+										+ "/src/com/app/customer/vo/Customer.java",
+								data);
+					}
+
+					String jpaPath = templatePath
+							+ "/PresentationLayer/CommonClasspath/JPA.classpath";
+					StringBuilder value = loadDeploymentDescriptorData(jpaPath);
+					data.put("jpaLib", value);
+
+					/*
+					 * Copy JPA Files
+					 */
+					copyJpaFiles(serviceProjectName, templatePath, workspace,
+							data, container);
+					/*
+					 * Copying the libraries
+					 */
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+						copyDirectory(templatePath + "/lib/JPA", workspace
+								.getRoot().getLocation().toString()
+								+ "/" + serviceProjectName + "/lib/");
+
+						if (!presentationFrameworkSelectorWizard
+								.getComboWebAppFramework().getText()
+								.equals("Struts")) {
+							data.put("additionalLib",
+									"<classpathentry kind=\"lib\" path=\"lib/javassist-3.18.1-GA.jar\"/>");
+							copyFile(templatePath
+									+ "/lib/Struts/javassist-3.18.1-GA.jar",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/lib/javassist-3.18.1-GA.jar");
+						}
+
+						if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+							data.put(
+									"dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/mysql-connector-java-5.1.15-bin.jar\"/>");
+							copyDirectory(templatePath + "/lib/MySQL",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/lib/");
+						} else if (dataBaseSelectorWizard.btnMicrosoftSqlServer
+								.getSelection()) {
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/sqljdbc4-4.0.jar\"/>");
+							copyDirectory(templatePath + "/lib/SQL", workspace
+									.getRoot().getLocation().toString()
+									+ "/" + serviceProjectName + "/lib/");
+						} else if (dataBaseSelectorWizard.getBtnOracle()
+								.getSelection()) {
+							data.put("dataBaseLib",
+									"<classpathentry kind=\"lib\" path=\"lib/ojdbc6.jar\"/>");
+							copyDirectory(templatePath + "/lib/Oracle",
+									workspace.getRoot().getLocation()
+											.toString()
+											+ "/"
+											+ serviceProjectName
+											+ "/lib/");
+						}
+					} else {
+						copyJpaLib(serviceProjectName, templatePath, workspace,
+								data);
+					}
+
+				}
+
+				/*
+				 * Copying common libraries
+				 */
+
+				if (!applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()
+						&& persistenceFrameworkSelectorWizard.getBtnJpa()
+								.getSelection()) {
+					if (!applicationFrameworkSelectorWizard.getBtnRestService()
+							.getSelection()
+							&& !applicationFrameworkSelectorWizard
+									.getBtnSoapService().getSelection()) {
+
+						copyFile(templatePath + "/lib/common/log4j-1.2.16.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/lib/log4j-1.2.16.jar");
+						copyFile(templatePath
+								+ "/lib/common/HJSF-Framework.jar", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ serviceProjectName
+								+ "/lib/HJSF-Framework.jar");
+						copyFile(templatePath + "/lib/common/HexLogger.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/lib/HexLogger.jar");
+						copyFile(templatePath + "/lib/common/jstl-1.2.jar",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/lib/jstl-1.2.jar");
+						copyFile(templatePath
+								+ "/lib/common/paranamer-2.6.1.jar", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ serviceProjectName
+								+ "/lib/paranamer-2.6.1.jar");
+
+					} else {
+						copyDirectory(templatePath + "/lib/common", workspace
+								.getRoot().getLocation().toString()
+								+ "/"
+								+ serviceProjectName
+								+ "/WebContent/WEB-INF/lib/");
+						copyDirectory(templatePath + "/lib/Rest Service",
+								workspace.getRoot().getLocation().toString()
+										+ "/" + serviceProjectName
+										+ "/WebContent/WEB-INF/lib/");
+					}
+				} else if (!applicationFrameworkSelectorWizard
+						.getBtnRestService().getSelection()
+						&& !applicationFrameworkSelectorWizard
+								.getBtnSoapService().getSelection()) {
+
+					copyFile(templatePath + "/lib/common/log4j-1.2.16.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName
+									+ "/lib/log4j-1.2.16.jar");
+					copyFile(templatePath + "/lib/common/HJSF-Framework.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName
+									+ "/lib/HJSF-Framework.jar");
+					copyFile(templatePath + "/lib/common/HexLogger.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName + "/lib/HexLogger.jar");
+					copyFile(templatePath + "/lib/common/jstl-1.2.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName + "/lib/jstl-1.2.jar");
+
+					copyFile(templatePath + "/lib/common/paranamer-2.6.1.jar",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName
+									+ "/lib/paranamer-2.6.1.jar");
+				} else {
+					copyDirectory(templatePath + "/lib/common", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ serviceProjectName
+							+ "/WebContent/WEB-INF/lib/");
+					copyDirectory(templatePath + "/lib/Rest Service", workspace
+							.getRoot().getLocation().toString()
+							+ "/"
+							+ serviceProjectName
+							+ "/WebContent/WEB-INF/lib/");
+				}
+
+				/*
+				 * Copying common Files
+				 */
+				if (!persistenceFrameworkSelectorWizard.getBtnJpa()
+						.getSelection()) {
+					copyTemplate(
+							templatePath
+									+ "/common/src/com/app/customer/vo/Customer.java.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName
+									+ "/src/com/app/customer/vo/Customer.java",
+							data);
+				}
+				/*
+				 * createFolder(container, "src/com/app/framework");
+				 * copyCommonFiles(templatePath, workspace, data,
+				 * serviceProjectName);
+				 */
+
+				/*
+				 * Copying web.xml file.
+				 */
+				if (applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+						|| applicationFrameworkSelectorWizard
+								.getBtnSoapService().getSelection()) {
+					String xmlTemplateFile = templatePath
+							+ "/common/service/web.xml.ftl";
+					String outputFile = workspace.getRoot().getLocation()
+							.toString()
+							+ "/"
+							+ serviceProjectName
+							+ "/WebContent/WEB-INF/web.xml";
+					System.out.println("----===>>>"
+							+ data.get("springMVCConfiguration"));
+					copyTemplate(xmlTemplateFile, outputFile, data);
+				}
+
+				/*
+				 * Cross Cutting Features - Instrumentation
+				 */
+				/*
+				 * if
+				 * (crosscuttingConcernsSelectorWizard.getBtnInstrumentation()
+				 * .getSelection()) { copyCrossCuttingFeatureFiles(templatePath,
+				 * workspace, serviceProjectName); if
+				 * (!applicationFrameworkSelectorWizard.getBtnRestService()
+				 * .getSelection() && !applicationFrameworkSelectorWizard
+				 * .getBtnSoapService().getSelection()) {
+				 * copyDirectory(templatePath + "/lib/Instrumentation",
+				 * workspace.getRoot().getLocation().toString() + "/" +
+				 * serviceProjectName + "/lib/"); } else {
+				 * copyDirectory(templatePath + "/lib/Instrumentation",
+				 * workspace.getRoot().getLocation().toString() + "/" +
+				 * serviceProjectName + "/WebContent/WEB-INF/lib/"); } }
+				 */
+
+				/*
+				 * Coping classpath for java project
+				 */
+				if (!applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard
+								.getBtnSoapService().getSelection()) {
+					copyTemplate(
+							templatePath
+									+ "/PresentationLayer/CommonClasspath/Common.classpath.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ serviceProjectName + "/.classpath/", data);
+				}
+
+			} catch (Exception ioe) {
+				ioe.printStackTrace();
+				log.error("Project is not created" + ioe.getMessage());
+				IStatus status = new Status(IStatus.ERROR,
+						"JavaSoftwareFactory", IStatus.OK,
+						ioe.getLocalizedMessage(), ioe);
+				throw new CoreException(status);
+			}
+			BasicNewProjectResourceWizard
+					.updatePerspective(_configurationElement);
+			IResource resour = ResourcesPlugin.getWorkspace().getRoot();
+
+			resour.refreshLocal(IResource.DEPTH_INFINITE, null);
+		} catch (Exception ioe) {
+			ioe.printStackTrace();
+			log.error("Excepton in createWebProject method" + ioe.getMessage());
+			IStatus status = new Status(IStatus.ERROR, "JavaSoftwareFactory",
+					IStatus.OK, ioe.getLocalizedMessage(), ioe);
+			throw new CoreException(status);
+		}
+	}
+
+	private void createEnterpriseProject() throws CoreException,
+			OperationCanceledException {
+		try {
+			log.debug("Inside Create EnterpriseProject");
+			/*
+			 * Create EAR Project Handler
+			 */
+			final IProject earProjectHandle = ResourcesPlugin.getWorkspace()
+					.getRoot().getProject(newProjectWizard.getProjectName());
+			earProjectName = earProjectHandle.getProject().getName();
+			/*
+			 * Create EJB Project Handler
+			 */
+			final IProject ejbProjectHandle = ResourcesPlugin.getWorkspace()
+					.getRoot()
+					.getProject(newProjectWizard.getProjectName() + "EJB");
+			ejbProjectName = ejbProjectHandle.getProject().getName();
+			/*
+			 * Create EJB-Project
+			 */
+			URI projectURI = (!newProjectWizard.useDefaults()) ? newProjectWizard
+					.getLocationURI() : null;
+			IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			projDesc = workspace.newProjectDescription(ejbProjectHandle
+					.getName());
+			projDesc.setLocationURI(projectURI);
+			ejbProjectHandle.create(projDesc, null);
+			ejbProjectHandle.open(IResource.BACKGROUND_REFRESH, null);
+
+			IFacetedProject iFacetedProject = (IFacetedProject) ProjectFacetsManager
+					.create(ejbProjectHandle.getProject(), true, null);
+			IProjectFacet JAVA_FACET = ProjectFacetsManager
+					.getProjectFacet("jst.java");
+			IProjectFacet EJB_FACET = ProjectFacetsManager
+					.getProjectFacet("jst.ejb");
+			iFacetedProject.installProjectFacet(JAVA_FACET.getDefaultVersion(),
+					null, null);
+			iFacetedProject.installProjectFacet(EJB_FACET.getVersion("3.0"),
+					null, null);
+			IContainer container = (IContainer) ejbProjectHandle;
+			createFolder(container, "src/com");
+			createFolder(container, "src/com/app");
+			createFolder(container, "src/com/app/customer");
+			createFolder(container, "src/com/app/customer/dao");
+			createFolder(container, "src/com/app/customer/service");
+			createFolder(container, "src/com/app/customer/util");
+			createFolder(container, "src/com/app/customer/vo");
+			createFolder(container, "src/com/app/framework");
+			createFolder(container, "src/com/app/framework/exception");
+			createFolder(container, "src/com/app/framework/util");
+			createFolder(container, "src/META-INF");
+
+			log.info("WORKSPACE : ", workspace.getRoot().getLocation()
+					.toString());
+			log.info("WORKSPACE : "
+					+ workspace.getRoot().getLocation().toString());
+			log.info("Application Name : " + ejbProjectName);
+			String templatePath = ConfigHandler.getInstance()
+					.getSystemProperty("template.location");
+			log.info("Template Path : " + templatePath);
+
+			Map<String, Object> data = new HashMap<String, Object>();
+			data.put("projectName", "");
+			data.put("serverHost", "http://localhost:8080/");
+			data.put("APP_NAME", earProjectName);
+			data.put("importDateTimeFormat", "");
+			data.put("importJsonFormat", "");
+			data.put("jsonFormatAnnotation", "");
+			data.put("dateTimeFormatAnnotation", "");
+			data.put("JTA_Datasource", "");
+			data.put("MODULE", "");
+			data.put("SUB_DEPLOYMENT", "");
+			data.put("url", url);
+			data.put("userName", userName);
+			data.put("password", password);
+			data.put("Driver", "");
+			data.put("Dialect", "");
+			/*
+			 * Copy EJB Files
+			 */
+			copyEJBFiles(ejbProjectName, templatePath, workspace, data,
+					container);
+
+			/*
+			 * Application Layer - EJB Data layer - Hibernate
+			 */
+			if (applicationFrameworkSelectorWizard.getBtnEjb().getSelection()
+					&& persistenceFrameworkSelectorWizard.getBtnHibernate()
+							.getSelection()) {
+				System.out.println("inside EJB selection");
+				copyFile(
+						templatePath
+								+ "/DataLayer/Hibernate/com/app/customer/dao/CustomerDao.java",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ ejbProjectName
+								+ "/src/com/app/customer/dao/CustomerDao.java");
+				copyFile(
+						templatePath
+								+ "/DataLayer/Hibernate/com/app/customer/dao/CustomerDaoImpl.java",
+						workspace.getRoot().getLocation().toString()
+								+ "/"
+								+ ejbProjectName
+								+ "/src/com/app/customer/dao/CustomerDaoImpl.java");
+				/*
+				 * copyDirectory(templatePath +
+				 * "/ApplicationLayer/Ejb/src/com/app/customer/service",
+				 * workspace.getRoot().getLocation().toString() + "/" +
+				 * ejbProjectName + "/src/com/app/customer/service");
+				 */
+				copyDirectory(templatePath
+						+ "/DataLayer/Hibernate/com/app/customer/util",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ ejbProjectName + "/src/com/app/customer/util");
+				if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+					data.put("Driver", "com.mysql.jdbc.Driver");
+					data.put("Dialect", "org.hibernate.dialect.MySQLDialect");
+				} else if (dataBaseSelectorWizard.getBtnMicrosoftSqlServer()
+						.getSelection()) {
+					data.put("Driver",
+							"com.microsoft.sqlserver.jdbc.SQLServerDriver");
+					data.put("Dialect",
+							"org.hibernate.dialect.SQLServerDialect");
+				} else if (dataBaseSelectorWizard.getBtnOracle().getSelection()) {
+					data.put("Driver", "oracle.jdbc.driver.OracleDriver");
+					data.put("Dialect", "org.hibernate.dialect.OracleDialect");
+				}
+				copyFile(templatePath
+						+ "/DataLayer/Hibernate/CustomerApplication.hbm.xml",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ ejbProjectName
+								+ "/src/CustomerApplication.hbm.xml");
+				copyTemplate(templatePath
+						+ "/DataLayer/Hibernate/hibernate.cfg.ftl", workspace
+						.getRoot().getLocation().toString()
+						+ "/" + ejbProjectName + "/src/hibernate.cfg.xml", data);
+				copyDirectory(templatePath
+						+ "/Common/src/com/app/framework/exception", workspace
+						.getRoot().getLocation().toString()
+						+ "/"
+						+ ejbProjectName
+						+ "/src/com/app/framework/exception");
+				/*
+				 * if(!presentationFrameworkSelectorWizard.
+				 * getBtnDesktopApplication ().getSelection()){
+				 * copyFile(templatePath +
+				 * "/ApplicationLayer/Ejb/src/com/app/framework/util/JndiLookup.java"
+				 * , workspace.getRoot().getLocation().toString() + "/" +
+				 * ejbProjectName +
+				 * "/src/com/app/framework/util/JndiLookup.java");
+				 * copyTemplate(templatePath +
+				 * "/ApplicationLayer/Ejb/src/com/app/framework/util/GlobalConstants.ftl"
+				 * , workspace.getRoot().getLocation().toString() + "/" +
+				 * ejbProjectName +
+				 * "/src/com/app/framework/util/GlobalConstants.java", data); }
+				 */
+				copyFile(templatePath
+						+ "/ApplicationLayer/Ejb/jboss-ejb-client.properties",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ ejbProjectName
+								+ "/src/jboss-ejb-client.properties");
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("Spring")) {
+					data.put("importDateTimeFormat",
+							"import org.springframework.format.annotation.DateTimeFormat;");
+					data.put("dateTimeFormatAnnotation",
+							"@DateTimeFormat(pattern = \"dd/MM/yyyy\")");
+					copyTemplate(
+							templatePath
+									+ "/common/src/com/app/customer/vo/Customer.java.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ ejbProjectName
+									+ "/src/com/app/customer/vo/Customer.java",
+							data);
+				} else {
+					copyTemplate(
+							templatePath
+									+ "/Common/src/com/app/customer/vo/Customer.java.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ ejbProjectName
+									+ "/src/com/app/customer/vo/Customer.java",
+							data);
+				}
+			}
+
+			/*
+			 * Application Layer - EJB Data layer - JPA
+			 */
+			if (applicationFrameworkSelectorWizard.getBtnEjb().getSelection()
+					&& persistenceFrameworkSelectorWizard.getBtnJpa()
+							.getSelection()) {
+				System.out.println("inside EJB selection");
+				if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+					data.put("JTA_Datasource",
+							"<jta-data-source>java:jboss/test-ds</jta-data-source>");
+				} else if (dataBaseSelectorWizard.getBtnMicrosoftSqlServer()
+						.getSelection()) {
+					data.put("JTA_Datasource",
+							"<jta-data-source>java:jboss/sql-ds</jta-data-source>");
+				} else if (dataBaseSelectorWizard.getBtnOracle().getSelection()) {
+					data.put("JTA_Datasource",
+							"<jta-data-source>java:jboss/oracle-ds</jta-data-source>");
+				}
+				/*
+				 * Copy EJB Jpa Files
+				 */
+				copyJpaFiles(ejbProjectName, templatePath, workspace, data,
+						container);
+
+				/*
+				 * if(!presentationFrameworkSelectorWizard.
+				 * getBtnDesktopApplication ().getSelection()){
+				 * copyTemplate(templatePath +
+				 * "/DataLayer/JPA/com/app/framework/util/GlobalConstants.ftl",
+				 * workspace.getRoot().getLocation().toString() + "/" +
+				 * ejbProjectName +
+				 * "/src/com/app/framework/util/GlobalConstants.java", data);
+				 * copyFile(templatePath +
+				 * "/DataLayer/JPA/com/app/framework/util/JndiLookup.java",
+				 * workspace.getRoot().getLocation().toString() + "/" +
+				 * ejbProjectName +
+				 * "/src/com/app/framework/util/JndiLookup.java"); }else{
+				 * copyTemplate(templatePath +
+				 * "/DataLayer/JPA/com/app/framework/util/GlobalConstants.ftl",
+				 * workspace.getRoot().getLocation().toString() + "/" +
+				 * ejbProjectName +
+				 * "/src/com/app/framework/util/GlobalConstants.java", data); }
+				 */
+				copyFile(templatePath
+						+ "/ApplicationLayer/Ejb/jboss-ejb-client.properties",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ ejbProjectName
+								+ "/src/jboss-ejb-client.properties");
+				if (presentationFrameworkSelectorWizard
+						.getComboWebAppFramework().getText().equals("Spring")) {
+					data.put("importDateTimeFormat",
+							"import org.springframework.format.annotation.DateTimeFormat;");
+					data.put("dateTimeFormatAnnotation",
+							"@DateTimeFormat(pattern = \"dd/MM/yyyy\")");
+					copyTemplate(
+							templatePath
+									+ "/DataLayer/JPA/com/app/customer/vo/Customer.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ ejbProjectName
+									+ "/src/com/app/customer/vo/Customer.java",
+							data);
+				} else {
+					copyTemplate(
+							templatePath
+									+ "/DataLayer/JPA/com/app/customer/vo/Customer.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ ejbProjectName
+									+ "/src/com/app/customer/vo/Customer.java",
+							data);
+				}
+
+			}
+
+			/*
+			 * Create Web Project Handler
+			 */
+			if (presentationFrameworkSelectorWizard.getBtnWebApplication()
+					.getSelection()) {
+				final IProject projectHandle = ResourcesPlugin.getWorkspace()
+						.getRoot()
+						.getProject(newProjectWizard.getProjectName() + "WEB");
+				webProjectName = projectHandle.getProject().getName();
+
+				/*
+				 * Create Web Project
+				 */
+
+				createWebPresentationProject(projectHandle);
+			} else if (presentationFrameworkSelectorWizard
+					.getBtnDesktopApplication().getSelection()) {
+				if (!applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+						&& !applicationFrameworkSelectorWizard
+								.getBtnSoapService().getSelection()) {
+					/*
+					 * Create Java Project
+					 */
+					final IProject projectHandle = ResourcesPlugin
+							.getWorkspace()
+							.getRoot()
+							.getProject(
+									newProjectWizard.getProjectName()
+											+ "Project");
+					javaProjectName = projectHandle.getProject().getName();
+					createJavaProject(projectHandle);
+				} else {
+
+					final IProject webProjectHandle = ResourcesPlugin
+							.getWorkspace()
+							.getRoot()
+							.getProject(
+									newProjectWizard.getProjectName() + "WEB");
+					webProjectName = webProjectHandle.getProject().getName();
+
+					/*
+					 * Create Web Project
+					 */
+
+					createWebPresentationProject(webProjectHandle);
+
+					/*
+					 * Create Java Project
+					 */
+					final IProject projectHandle = ResourcesPlugin
+							.getWorkspace()
+							.getRoot()
+							.getProject(
+									newProjectWizard.getProjectName()
+											+ "Project");
+					javaProjectName = projectHandle.getProject().getName();
+					createJavaProject(projectHandle);
+				}
+			}
+			log.debug("Inside Create Ear Project");
+
+			/*
+			 * Creation of EAR Project
+			 */
+			projDesc = workspace.newProjectDescription(earProjectHandle
+					.getName());
+			projDesc.setLocationURI(projectURI);
+			earProjectHandle.create(projDesc, null);
+			earProjectHandle.open(IResource.BACKGROUND_REFRESH, null);
+
+			iFacetedProject = (IFacetedProject) ProjectFacetsManager.create(
+					earProjectHandle.getProject(), true, null);
+			IProjectFacet EAR_FACET = ProjectFacetsManager
+					.getProjectFacet("jst.ear");
+			iFacetedProject.installProjectFacet(EAR_FACET.getDefaultVersion(),
+					null, null);
+			container = (IContainer) earProjectHandle;
+			createFolder(container, "EarContent/lib");
+			createFolder(container, "EarContent/META-INF");
+			if (presentationFrameworkSelectorWizard.getBtnWebApplication()
+					.getSelection()) {
+				data.put("MODULE", "<module>" + "<web>" + "<web-uri>"
+						+ earProjectName + "WEB.war</web-uri>"
+						+ "<context-root>" + earProjectName
+						+ "WEB</context-root>" + "</web>" + "</module>");
+				data.put("SUB_DEPLOYMENT", "<sub-deployment name=" + '"'
+						+ earProjectName + "WEB.war" + '"' + ">"
+						+ "<exclusions>"
+						+ "<module name=\"org.apache.log4j\"/>"
+						+ "</exclusions>" + "</sub-deployment>");
+				copyTemplate(templatePath
+						+ "/Enterprise Application Archive/application.ftl",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/META-INF/application.xml", data);
+				copyTemplate(
+						templatePath
+								+ "/Enterprise Application Archive/jboss-deployment-structure.ftl",
+						workspace.getRoot().getLocation().toString()
+								+ "/"
+								+ earProjectName
+								+ "/EarContent/META-INF/jboss-deployment-structure.xml",
+						data);
+			} else if (presentationFrameworkSelectorWizard
+					.getBtnDesktopApplication().getSelection()) {
+				if (applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+						|| applicationFrameworkSelectorWizard
+								.getBtnSoapService().getSelection()) {
+					data.put("MODULE", "<module>" + "<web>" + "<web-uri>"
+							+ earProjectName + "WEB.war</web-uri>"
+							+ "<context-root>" + earProjectName
+							+ "WEB</context-root>" + "</web>" + "</module>");
+					data.put("SUB_DEPLOYMENT", "<sub-deployment name=" + '"'
+							+ earProjectName + "WEB.war" + '"' + ">"
+							+ "<exclusions>"
+							+ "<module name=\"org.apache.log4j\"/>"
+							+ "</exclusions>" + "</sub-deployment>");
+					copyTemplate(
+							templatePath
+									+ "/Enterprise Application Archive/application.ftl",
+							workspace.getRoot().getLocation().toString() + "/"
+									+ earProjectName
+									+ "/EarContent/META-INF/application.xml",
+							data);
+				}
+				copyTemplate(templatePath
+						+ "/Enterprise Application Archive/application.ftl",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/META-INF/application.xml", data);
+				copyTemplate(
+						templatePath
+								+ "/Enterprise Application Archive/jboss-deployment-structure.ftl",
+						workspace.getRoot().getLocation().toString()
+								+ "/"
+								+ earProjectName
+								+ "/EarContent/META-INF/jboss-deployment-structure.xml",
+						data);
+			}
+			copyTemplate(
+					templatePath
+							+ "/Enterprise Application Archive/org.eclipse.wst.common.ftl",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ earProjectName
+							+ "/.settings/org.eclipse.wst.common.component",
+					data);
+			copyFile(templatePath + "/lib/common/log4j-1.2.16.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + earProjectName + "/EarContent/lib/log4j-1.2.16.jar");
+			copyFile(templatePath + "/lib/common/HexLogger.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + earProjectName + "/EarContent/lib/HexLogger.jar");
+			copyFile(templatePath
+					+ "/lib/Rest Service/jackson-core-asl-1.9.2.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/"
+					+ earProjectName
+					+ "/EarContent/lib/jackson-core-asl-1.9.2.jar");
+			copyFile(templatePath
+					+ "/lib/Rest Service/jackson-mapper-asl-1.9.2.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ earProjectName
+							+ "/EarContent/lib/jackson-mapper-asl-1.9.2.jar");
+			copyFile(templatePath + "/lib/Rest Service/json-simple-1.1.1.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ earProjectName
+							+ "/EarContent/lib/json-simple-1.1.1.jar");
+			copyFile(templatePath + "/lib/common/paranamer-2.6.1.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ earProjectName
+							+ "/EarContent/lib/paranamer-2.6.1.jar");
+			copyFile(templatePath + "/lib/common/commons-beanutils.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ earProjectName
+							+ "/EarContent/lib/commons-beanutils.jar");
+			copyFile(templatePath + "/lib/common/commons-digester.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ earProjectName
+							+ "/EarContent/lib/commons-digester.jar");
+			copyFile(templatePath + "/lib/common/commons-fileupload.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ earProjectName
+							+ "/EarContent/lib/commons-fileupload.jar");
+			/*
+			 * Copy Database Lib
+			 */
+			if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+				copyDirectory(templatePath + "/lib/MySQL", workspace.getRoot()
+						.getLocation().toString()
+						+ "/" + earProjectName + "/EarContent/lib/");
+			} else if (dataBaseSelectorWizard.btnMicrosoftSqlServer
+					.getSelection()) {
+				copyDirectory(templatePath + "/lib/SQL", workspace.getRoot()
+						.getLocation().toString()
+						+ "/" + earProjectName + "/EarContent/lib/");
+			} else if (dataBaseSelectorWizard.getBtnOracle().getSelection()) {
+				copyDirectory(templatePath + "/lib/Oracle", workspace.getRoot()
+						.getLocation().toString()
+						+ "/" + earProjectName + "/EarContent/lib/");
+			}
+			if (persistenceFrameworkSelectorWizard.getBtnHibernate()
+					.getSelection()) {
+				copyFile(templatePath + "/lib/common/antlr-2.7.5.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/lib/antlr-2.7.5.jar");
+				copyFile(templatePath + "/lib/common/cglib-nodep-2.1_3.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/lib/cglib-nodep-2.1_3.jar");
+				copyFile(templatePath + "/lib/common/commons-collections.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/lib/commons-collections.jar");
+				copyFile(templatePath + "/lib/common/dom4j-1.6.jar", workspace
+						.getRoot().getLocation().toString()
+						+ "/"
+						+ earProjectName
+						+ "/EarContent/lib/dom4j-1.6.jar");
+				copyDirectory(templatePath + "/lib/Hibernate", workspace
+						.getRoot().getLocation().toString()
+						+ "/" + earProjectName + "/EarContent/lib/");
+			}
+
+			if (persistenceFrameworkSelectorWizard.getBtnJpa().getSelection()) {
+				copyFile(templatePath + "/lib/common/antlr-2.7.5.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/lib/antlr-2.7.5.jar");
+				copyFile(templatePath + "/lib/common/commons-logging.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/lib/commons-logging.jar");
+				copyFile(templatePath + "/lib/common/dom4j-1.6.jar", workspace
+						.getRoot().getLocation().toString()
+						+ "/"
+						+ earProjectName
+						+ "/EarContent/lib/dom4j-1.6.jar");
+				copyFile(templatePath + "/lib/Hibernate/hibernate3.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/lib/hibernate3.jar");
+
+				copyFile(templatePath + "/lib/Struts/javassist-3.18.1-GA.jar",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ earProjectName
+								+ "/EarContent/lib/javassist-3.18.1-GA.jar");
+				copyDirectory(templatePath + "/lib/JPA", workspace.getRoot()
+						.getLocation().toString()
+						+ "/" + earProjectName + "/EarContent/lib/");
+			}
+
+			if (presentationFrameworkSelectorWizard.getComboWebAppFramework()
+					.getText().equals("Spring")) {
+				copyDirectory(templatePath + "/lib/Spring/common", workspace
+						.getRoot().getLocation().toString()
+						+ "/" + earProjectName + "/EarContent/lib/");
+				copyFile(
+						templatePath
+								+ "/lib/Spring/MVC/spring-aop-4.1.6.RELEASE.jar",
+						workspace.getRoot().getLocation().toString()
+								+ "/"
+								+ earProjectName
+								+ "/EarContent/lib/spring-aop-4.1.6.RELEASE.jar");
+			}
+		} catch (Exception ioe) {
+			ioe.printStackTrace();
+			log.error("Excepton in createWebProject method" + ioe.getMessage());
+			IStatus status = new Status(IStatus.ERROR, "JavaSoftwareFactory",
+					IStatus.OK, ioe.getLocalizedMessage(), ioe);
+			throw new CoreException(status);
+		}
+	}
+
+	protected StringBuilder loadDeploymentDescriptorData(String filePath)
 			throws IOException {
 		File file = new File(filePath);
 		Reader reader = new FileReader(file);
@@ -693,7 +4763,7 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 		return value;
 	}
 
-	private void copyTemplate(String templateFile, String outputFile,
+	protected void copyTemplate(String templateFile, String outputFile,
 			Object data) throws IOException, TemplateException {
 		log.info("copyTemplate method starts");
 		Configuration cfg = new Configuration();
@@ -721,7 +4791,7 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 		}
 	}
 
-	private void createFolder(IContainer container, String srcFolder)
+	protected void createFolder(IContainer container, String srcFolder)
 			throws CoreException {
 		final IFolder style1 = container.getFolder(new Path(srcFolder));
 		if (!style1.exists()) {
@@ -729,7 +4799,7 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 		}
 	}
 
-	private void copyDirectory(String srcFile, String destFile)
+	protected void copyDirectory(String srcFile, String destFile)
 			throws IOException, CoreException {
 		log.info("Inside writeOther file----->");
 		log.info("SCR FILE : " + srcFile);
@@ -744,7 +4814,7 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 		}
 	}
 
-	private void copyFile(String srcFile, String destFile) throws IOException,
+	protected void copyFile(String srcFile, String destFile) throws IOException,
 			CoreException {
 		log.info("Inside writeOther file----->");
 		log.info("SCR FILE : " + srcFile);
@@ -757,6 +4827,411 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 			e.printStackTrace();
 			log.error("Copy directory is failed", e.getMessage());
 		}
+	}
+
+	private void copyCommonFiles(String templatePath, IWorkspace workspace,
+			Map<String, Object> data, String projectName) throws IOException,
+			TemplateException, CoreException {
+
+		copyDirectory(templatePath + "/common/src/com/app/framework", workspace
+				.getRoot().getLocation().toString()
+				+ "/" + projectName + "/src/com/app/framework");
+	}
+
+	private void copySpringIOCFiles(String templatePath, IWorkspace workspace,
+			Map<String, Object> data, String projectName) throws IOException,
+			CoreException, TemplateException {
+		data.put("customerDaoObject",
+				"(CustomerDao) BootStrapper.getService().getBean(\"CustomerDao\")");
+		data.put("customerServiceBean", "");
+		data.put("instrumentationBean", "");
+		copyDirectory(templatePath
+				+ "/ApplicationLayer/Spring/com/app/customer/util", workspace
+				.getRoot().getLocation().toString()
+				+ "/" + projectName + "/src/com/app/customer/util");
+		/*
+		 * Cross cutting feature - Instrumentation
+		 */
+		/*
+		 * if (crosscuttingConcernsSelectorWizard.getBtnInstrumentation()
+		 * .getSelection()) { String filePath = templatePath +
+		 * "/Cross Cutting Features/Instrumentation/applicationContext.xml";
+		 * StringBuilder value = loadDeploymentDescriptorData(filePath);
+		 * data.put("instrumentationBean", value); data.put("customerDaoObject",
+		 * "(CustomerDao) BootStrapper.getService().getBean(\"customerServiceProxy\")"
+		 * ); }
+		 */
+
+		if (!applicationFrameworkSelectorWizard.getBtnRestService()
+				.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()
+				&& !persistenceFrameworkSelectorWizard.getBtnJpa()
+						.getSelection()) {
+
+			copyTemplate(
+					templatePath
+							+ "/ApplicationLayer/Spring/com/app/customer/service/CustomerImpl.java.ftl",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName
+							+ "/src/com/app/customer/service/CustomerImpl.java",
+					data);
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Spring/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName
+							+ "/src/com/app/customer/service/ICustomer.java");
+
+		} else if (!applicationFrameworkSelectorWizard.getBtnRestService()
+				.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()
+				&& persistenceFrameworkSelectorWizard.getBtnJpa()
+						.getSelection()) {
+			copyDirectory(templatePath
+					+ "/ApplicationLayer/Spring/JPA/com/app/customer/service",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName + "/src/com/app/customer/service");
+		}
+
+		copyTemplate(templatePath
+				+ "/ApplicationLayer/Spring/applicationContext.xml.ftl",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ projectName + "/src/applicationContext.xml", data);
+	}
+
+	private void copyRestServiceFiles(String templatePath,
+			IWorkspace workspace, Map<String, Object> data, String projectName)
+			throws IOException, CoreException, TemplateException {
+		data.put("jsonFormatAnnotation", "@JsonFormat(pattern=\"yyyy-MM-dd\")");
+		data.put("importJsonFormat",
+				"import com.fasterxml.jackson.annotation.JsonFormat;");
+		if (persistenceFrameworkSelectorWizard.getBtnJpa().getSelection()) {
+			copyDirectory(
+					templatePath
+							+ "/ApplicationLayer/RestService/JPA/com/app/customer/service",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName + "/src/com/app/customer/service");
+		} else {
+			// copyCrossCuttingAngularJsRestSoapFiles(serviceProjectName,templatePath,
+			// workspace, data );
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/RestService/src/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName
+							+ "/src/com/app/customer/service/ICustomer.java");
+			copyTemplate(
+					templatePath
+							+ "/ApplicationLayer/RestService/src/com/app/customer/service/RestService.java.ftl",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName
+							+ "/src/com/app/customer/service/RestService.java",
+					data);
+		}
+	}
+
+	private void copySOAPStubFiles(String templatePath, IWorkspace workspace,
+			Map<String, Object> data, String projectName) throws IOException,
+			CoreException, TemplateException {
+		copyFile(
+				templatePath
+						+ "/ApplicationLayer/SoapService/src/com/app/customer/service/ICustomer.java",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ projectName
+						+ "/src/com/app/customer/service/ICustomer.java");
+		copyTemplate(
+				templatePath
+						+ "/ApplicationLayer/SoapService/src/com/app/customer/stub/CustomerStub.java.ftl",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ projectName
+						+ "/src/com/app/customer/stub/CustomerStub.java", data);
+
+	}
+
+	private void copySOAPServiceFiles(String templatePath,
+			IWorkspace workspace, Map<String, Object> data, String projectName)
+			throws IOException, CoreException, TemplateException {
+		if (persistenceFrameworkSelectorWizard.getBtnJpa().getSelection()) {
+			copyDirectory(
+					templatePath
+							+ "/ApplicationLayer/SoapService/JPA/com/app/customer/service",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName + "/src/com/app/customer/service");
+		} else {
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/SoapService/src/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName
+							+ "/src/com/app/customer/service/ICustomer.java");
+			copyTemplate(
+					templatePath
+							+ "/ApplicationLayer/SoapService/src/com/app/customer/service/SOAPService.java.ftl",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projectName
+							+ "/src/com/app/customer/service/SOAPService.java",
+					data);
+		}
+
+	}
+
+	private void copyHibernateFiles(String templatePath, IWorkspace workspace,
+			Map<String, Object> data, String projectName) throws IOException,
+			CoreException, TemplateException {
+		copyFile(
+				templatePath
+						+ "/DataLayer/Hibernate/com/app/customer/dao/CustomerDaoImpl.java",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ projectName
+						+ "/src/com/app/customer/dao/CustomerDaoImpl.java");
+		/*
+		 * copyTemplate( templatePath +
+		 * "/DataLayer/Hibernate/com/app/customer/dao/CustomerDaoImpl.ftl",
+		 * workspace.getRoot().getLocation().toString() + "/" + projectName +
+		 * "/src/com/app/customer/dao/CustomerDaoImpl.java", data);
+		 */
+		copyFile(templatePath
+				+ "/DataLayer/Hibernate/com/app/customer/dao/CustomerDao.java",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ projectName
+						+ "/src/com/app/customer/dao/CustomerDao.java");
+		copyFile(
+				templatePath
+						+ "/DataLayer/Hibernate/com/app/customer/util/HibernateUtil.java",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ projectName
+						+ "/src/com/app/customer/util/HibernateUtil.java");
+		copyFile(templatePath
+				+ "/DataLayer/Hibernate/CustomerApplication.hbm.xml", workspace
+				.getRoot().getLocation().toString()
+				+ "/" + projectName + "/src/CustomerApplication.hbm.xml");
+		if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+			data.put("Driver", "com.mysql.jdbc.Driver");
+			data.put("Dialect", "org.hibernate.dialect.MySQLDialect");
+		} else if (dataBaseSelectorWizard.getBtnMicrosoftSqlServer()
+				.getSelection()) {
+			data.put("Driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			data.put("Dialect", "org.hibernate.dialect.SQLServerDialect");
+		} else if (dataBaseSelectorWizard.getBtnOracle().getSelection()) {
+			data.put("Driver", "oracle.jdbc.driver.OracleDriver");
+			data.put("Dialect", "org.hibernate.dialect.OracleDialect");
+		}
+		copyTemplate(templatePath + "/DataLayer/Hibernate/hibernate.cfg.ftl",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ projectName + "/src/hibernate.cfg.xml", data);
+
+	}
+
+	private void copyDatabaseLib(String projName, String templatePath,
+			IWorkspace workspace, Map<String, Object> data) throws IOException,
+			CoreException, TemplateException {
+		String libPath = null;
+		if (presentationFrameworkSelectorWizard.getBtnDesktopApplication()
+				.getSelection()
+				&& (!applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection() && !applicationFrameworkSelectorWizard
+						.getBtnSoapService().getSelection())) {
+			libPath = "/lib/";
+		} else if (presentationFrameworkSelectorWizard.getBtnWebApplication()
+				.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+			libPath = "/WebContent/WEB-INF/lib/";
+		} else if (presentationFrameworkSelectorWizard.getBtnWebApplication()
+				.getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnEjb()
+						.getSelection()) {
+			libPath = "/EarContent/lib/";
+		} else if (presentationFrameworkSelectorWizard
+				.getBtnDesktopApplication().getSelection()
+				&& (applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection() || applicationFrameworkSelectorWizard
+						.getBtnSoapService().getSelection())) {
+			libPath = "/WebContent/WEB-INF/lib/";
+		}
+
+		if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+			copyDirectory(templatePath + "/lib/MySQL", workspace.getRoot()
+					.getLocation().toString()
+					+ "/" + projName + libPath);
+		} else if (dataBaseSelectorWizard.btnMicrosoftSqlServer.getSelection()) {
+			copyDirectory(templatePath + "/lib/SQL", workspace.getRoot()
+					.getLocation().toString()
+					+ "/" + projName + libPath);
+		} else if (dataBaseSelectorWizard.getBtnOracle().getSelection()) {
+			copyDirectory(templatePath + "/lib/Oracle", workspace.getRoot()
+					.getLocation().toString()
+					+ "/" + projName + libPath);
+		}
+
+	}
+
+	private void copyJpaFiles(String projName, String templatePath,
+			IWorkspace workspace, Map data, IContainer container)
+			throws IOException, CoreException, TemplateException {
+		createFolder(container, "src/META-INF");
+		copyDirectory(templatePath + "/Common/src/com/app/framework/exception",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/framework/exception");
+		copyFile(templatePath
+				+ "/DataLayer/JPA/com/app/customer/util/EmProvider.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/util/EmProvider.java");
+		copyFile(templatePath
+				+ "/DataLayer/JPA/com/app/customer/dao/CustomerDaoImpl.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/dao/CustomerDaoImpl.java");
+		copyFile(templatePath
+				+ "/DataLayer/JPA/com/app/customer/dao/CustomerDao.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/dao/CustomerDao.java");
+		copyFile(
+				templatePath
+						+ "/DataLayer/JPA/com/app/customer/dao/AbstractCustomerDao.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/dao/AbstractCustomerDao.java");
+		/*
+		 * copyTemplate(templatePath +
+		 * "/DataLayer/JPA/com/app/customer/service/CustomerImpl.ftl",
+		 * workspace.getRoot().getLocation().toString() + "/" + projName +
+		 * "/src/com/app/customer/service/CustomerImpl.java", data);
+		 */
+		if (applicationFrameworkSelectorWizard.getBtnEjb().getSelection()) {
+			copyFile(templatePath
+					+ "/DataLayer/JPA/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/ICustomer.java");
+		}
+		copyFile(templatePath
+				+ "/DataLayer/JPA/com/app/customer/util/HexHelper.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/util/HexHelper.java");
+		copyFile(
+				templatePath + "/DataLayer/JPA/com/app/framework/BaseDAO.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/framework/BaseDAO.java");
+		copyFile(templatePath
+				+ "/DataLayer/JPA/com/app/framework/QueryResultType.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/framework/QueryResultType.java");
+		if (dataBaseSelectorWizard.btnMysql.getSelection()) {
+			data.put("Driver", "com.mysql.jdbc.Driver");
+			data.put("Dialect", "org.hibernate.dialect.MySQLDialect");
+		} else if (dataBaseSelectorWizard.getBtnMicrosoftSqlServer()
+				.getSelection()) {
+			data.put("Driver", "com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			data.put("Dialect", "org.hibernate.dialect.SQLServerDialect");
+		} else if (dataBaseSelectorWizard.getBtnOracle().getSelection()) {
+			data.put("Driver", "oracle.jdbc.driver.OracleDriver");
+			data.put("Dialect", "org.hibernate.dialect.OracleDialect");
+		}
+		copyTemplate(templatePath + "/DataLayer/JPA/META-INF/persistence.ftl",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/META-INF/persistence.xml", data);
+
+	}
+
+	private void copyJpaLib(String projName, String templatePath,
+			IWorkspace workspace, Map data) throws IOException, CoreException,
+			TemplateException {
+		if (presentationFrameworkSelectorWizard.getBtnDesktopApplication()
+				.getSelection()
+				|| presentationFrameworkSelectorWizard.getBtnWebApplication()
+						.getSelection()
+				&& (applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection() || applicationFrameworkSelectorWizard
+						.getBtnSoapService().getSelection())) {
+			copyDirectory(templatePath + "/lib/JPA", workspace.getRoot()
+					.getLocation().toString()
+					+ "/" + projName + "/WebContent/WEB-INF/lib/");
+			copyFile(templatePath + "/lib/common/antlr-2.7.5.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/"
+					+ projName
+					+ "/WebContent/WEB-INF/lib/antlr-2.7.5.jar");
+			copyFile(templatePath + "/lib/common/commons-logging.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/WebContent/WEB-INF/lib/commons-logging.jar");
+			copyFile(templatePath + "/lib/common/dom4j-1.6.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + "/WebContent/WEB-INF/lib/dom4j-1.6.jar");
+			/*
+			 * copyFile(templatePath + "/lib/Hibernate/hibernate3.jar",
+			 * workspace .getRoot().getLocation().toString() + "/" + projName +
+			 * "/WebContent/WEB-INF/lib/hibernate3.jar");
+			 */
+			copyFile(templatePath + "/lib/common/HexLogger.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + "/WebContent/WEB-INF/lib/HexLogger.jar");
+			copyFile(templatePath + "/lib/Struts/javassist-3.18.1-GA.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/WebContent/WEB-INF/lib/javassist-3.18.1-GA.jar");
+			copyFile(
+					templatePath + "/lib/Hibernate/javax-transaction-api.jar",
+					workspace.getRoot().getLocation().toString()
+							+ "/"
+							+ projName
+							+ "/WebContent/WEB-INF/lib/javax-transaction-api.jar");
+			copyFile(templatePath + "/lib/common/log4j-1.2.16.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/"
+					+ projName
+					+ "/WebContent/WEB-INF/lib/log4j-1.2.16.jar");
+		} else if (presentationFrameworkSelectorWizard
+				.getBtnDesktopApplication().getSelection()
+				|| presentationFrameworkSelectorWizard.getBtnWebApplication()
+						.getSelection()
+				&& (!applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection() && !applicationFrameworkSelectorWizard
+						.getBtnSoapService().getSelection())) {
+			copyDirectory(templatePath + "/lib/JPA", workspace.getRoot()
+					.getLocation().toString()
+					+ "/" + projName + "/lib/");
+			copyFile(templatePath + "/lib/common/antlr-2.7.5.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + "/lib/antlr-2.7.5.jar");
+			copyFile(templatePath + "/lib/common/commons-logging.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName + "lib/commons-logging.jar");
+			copyFile(templatePath + "/lib/common/dom4j-1.6.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + "/lib/dom4j-1.6.jar");
+			/*
+			 * copyFile(templatePath + "/lib/Hibernate/hibernate3.jar",
+			 * workspace .getRoot().getLocation().toString() + "/" + projName +
+			 * "/lib/hibernate3.jar");
+			 */
+			copyFile(templatePath + "/lib/common/HexLogger.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + "/lib/HexLogger.jar");
+			copyFile(templatePath + "/lib/Struts/javassist-3.18.1-GA.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName + "/lib/javassist-3.18.1-GA.jar");
+			copyFile(templatePath + "/lib/Hibernate/javax-transaction-api.jar",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName + "/lib/javax-transaction-api.jar");
+			copyFile(templatePath + "/lib/common/log4j-1.2.16.jar", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + "/lib/log4j-1.2.16.jar");
+		}
+		/*
+		 * Copy Database Files
+		 */
+		copyDatabaseLib(projName, templatePath, workspace, data);
+	}
+
+	private void copyCrossCuttingFeatureFiles(String templatePath,
+			IWorkspace workspace, String projectName) throws IOException,
+			CoreException {
+		copyDirectory(templatePath
+				+ "/Cross Cutting Features/Instrumentation/src", workspace
+				.getRoot().getLocation().toString()
+				+ "/" + projectName + "/src/");
 	}
 
 	public static String replaceTags(String psSource, String psTag, String psVar) {
@@ -777,16 +5252,301 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 		}
 	}
 
-	@Override
+	protected void copyEJBDesktopFiles(String projName, String templatePath,
+			IWorkspace workspace, Map data, IContainer container)
+			throws IOException, CoreException, TemplateException {
+		String libPath = "";
+		createFolder(container, "src/com");
+		createFolder(container, "src/com/app");
+		createFolder(container, "src/com/app/framework");
+		createFolder(container, "src/com/app/framework/service");
+
+		if (presentationFrameworkSelectorWizard.getBtnDesktopApplication()
+				.getSelection()) {
+			data.put("projectName", earProjectName);
+			data.put("APP_NAME", earProjectName);
+			libPath = "/lib/";
+			if (!applicationFrameworkSelectorWizard.getBtnRestService()
+					.getSelection()
+					&& !applicationFrameworkSelectorWizard.getBtnSoapService()
+							.getSelection()) {
+				createFolder(container, "src/com/app/customer/util");
+				copyTemplate(
+						templatePath
+								+ "/ApplicationLayer/Ejb/common/com/app/customer/util/GlobalConstants.ftl",
+						workspace.getRoot().getLocation().toString()
+								+ "/"
+								+ projName
+								+ "/src/com/app/customer/util/GlobalConstants.java",
+						data);
+				copyFile(
+						templatePath
+								+ "/ApplicationLayer/Ejb/common/com/app/customer/util/JndiLookup.java",
+						workspace.getRoot().getLocation().toString() + "/"
+								+ projName
+								+ "/src/com/app/customer/util/JndiLookup.java");
+				// EJB without Rest & Soap
+				copyFile(
+						templatePath
+								+ "/ApplicationLayer/Ejb/common/com/app/customer/lookup/CustomerLookup.java",
+						workspace.getRoot().getLocation().toString()
+								+ "/"
+								+ projName
+								+ "/src/com/app/customer/lookup/CustomerLookup.java");
+			}
+		}
+	}
+
+	private void copyEJBWebFiles(String projName, String templatePath,
+			IWorkspace workspace, Map data, IContainer container)
+			throws IOException, CoreException, TemplateException {
+		createFolder(container, "src/com");
+		createFolder(container, "src/com/app");
+		createFolder(container, "src/com/app/framework");
+		createFolder(container, "src/com/app/framework/service");
+		createFolder(container, "src/com/app/framework/util");
+		createFolder(container, "src/com/app/framework/delegate");
+		createFolder(container, "src/com/app/framework/exception");
+		String libPath = "";
+		data.put("projectName", projName);
+		libPath = "/Webcontent/WEB-INF/";
+		copyFile(
+				templatePath
+						+ "/common/src/com/app/framework/delegate/HJSFBusinessDelegator.java",
+				workspace.getRoot().getLocation().toString()
+						+ "/"
+						+ projName
+						+ "/src/com/app/framework/delegate/HJSFBusinessDelegator.java");
+		copyFile(
+				templatePath
+						+ "/common/src/com/app/framework/exception/HexApplicationException.java",
+				workspace.getRoot().getLocation().toString()
+						+ "/"
+						+ projName
+						+ "/src/com/app/framework/exception/HexApplicationException.java");
+		copyFile(
+				templatePath
+						+ "/common/src/com/app/framework/service/HJSFServiceController.java",
+				workspace.getRoot().getLocation().toString()
+						+ "/"
+						+ projName
+						+ "/src/com/app/framework/service/HJSFServiceController.java");
+		copyFile(templatePath
+				+ "/common/src/com/app/framework/util/HJSFParam.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/framework/util/HJSFParam.java");
+
+		// }
+		if (applicationFrameworkSelectorWizard.getBtnEjb().getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+			// EJB with Rest & Soap
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Soap/com/app/customer/service/SOAPService.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/SOAPService.java");
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Rest/com/app/customer/service/RestService.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/RestService.java");
+			copyDirectory(templatePath + "/lib/Soap Service", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + libPath + "lib/");
+			copyFile(templatePath
+					+ "/ApplicationLayer/Ejb/Soap/WEB-INF/sun-jaxws.xml",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName + libPath + "sun-jaxws.xml");
+		} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+				.getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+			// EJB with Rest
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Rest/com/app/customer/service/RestService.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/RestService.java");
+		} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+				.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+			// EJB with Soap
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Soap/com/app/customer/service/SOAPService.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/SOAPService.java");
+			copyDirectory(templatePath + "/lib/Soap Service", workspace
+					.getRoot().getLocation().toString()
+					+ "/" + projName + libPath + "lib/");
+			copyFile(templatePath
+					+ "/ApplicationLayer/Ejb/Soap/WEB-INF/sun-jaxws.xml",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName + libPath + "sun-jaxws.xml");
+		} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+				.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+			// EJB without Rest & Soap
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/common/com/app/customer/lookup/CustomerLookup.java",
+					workspace.getRoot().getLocation().toString()
+							+ "/"
+							+ projName
+							+ "/src/com/app/customer/lookup/CustomerLookup.java");
+		}
+	}
+
+	private void copyEJBFiles(String projName, String templatePath,
+			IWorkspace workspace, Map data, IContainer container)
+			throws IOException, CoreException, TemplateException {
+		String ejbBeanPath = "";
+		createFolder(container, "src/com/app/customer/ejb");
+		createFolder(container, "src/com/app/customer/stub");
+		data.put("projectName", earProjectName + "WEB");
+		if (applicationFrameworkSelectorWizard.getBtnEjb().getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+			// EJB with Rest & Soap
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Soap/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/ICustomer.java");
+			copyTemplate(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Soap/com/app/customer/stub/CustomerStub.java.ftl",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/stub/CustomerStub.java",
+					data);
+		} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+				.getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+			// EJB with Rest
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Rest/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/ICustomer.java");
+		} else if (applicationFrameworkSelectorWizard.getBtnEjb()
+				.getSelection()
+				&& !applicationFrameworkSelectorWizard.getBtnRestService()
+						.getSelection()
+				&& applicationFrameworkSelectorWizard.getBtnSoapService()
+						.getSelection()) {
+			// EJB with Soap
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Soap/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/ICustomer.java");
+			copyTemplate(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Soap/com/app/customer/stub/CustomerStub.java.ftl",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/stub/CustomerStub.java",
+					data);
+		} else
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/Soap/com/app/customer/service/ICustomer.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/service/ICustomer.java");
+		if (persistenceFrameworkSelectorWizard.getBtnJpa().getSelection()) {
+			ejbBeanPath = "common";
+			copyFile(
+					templatePath
+							+ "/ApplicationLayer/Ejb/common/com/app/customer/util/EmProvider.java",
+					workspace.getRoot().getLocation().toString() + "/"
+							+ projName
+							+ "/src/com/app/customer/util/EmProvider.java");
+		} else if (persistenceFrameworkSelectorWizard.getBtnHibernate()
+				.getSelection()) {
+			ejbBeanPath = "hibernate";
+		}
+		copyTemplate(templatePath + "/ApplicationLayer/Ejb/" + ejbBeanPath
+				+ "/com/app/customer/ejb/CustomerBean.java", workspace
+				.getRoot().getLocation().toString()
+				+ "/"
+				+ projName
+				+ "/src/com/app/customer/ejb/CustomerBean.java", data);
+		copyTemplate(
+				templatePath
+						+ "/ApplicationLayer/Ejb/common/com/app/customer/util/GlobalConstants.ftl",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/util/GlobalConstants.java",
+				data);
+		copyFile(
+				templatePath
+						+ "/ApplicationLayer/Ejb/common/com/app/customer/util/HexHelper.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/util/HexHelper.java");
+		copyFile(
+				templatePath
+						+ "/ApplicationLayer/Ejb/common/com/app/customer/util/JndiLookup.java",
+				workspace.getRoot().getLocation().toString() + "/" + projName
+						+ "/src/com/app/customer/util/JndiLookup.java");
+
+	}
+
+	public void copyEmailFile(String javaProjectName, String templatePath,
+			IWorkspace workspace, Map data, IContainer container)
+			throws IOException, CoreException, TemplateException {
+		copyFile(
+				templatePath
+						+ "/PresentationLayer/JavaFx/email/src/view/CustomerAddview.fxml",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ javaProjectName + "/src/view/CustomerAddview.fxml");
+		copyFile(
+				templatePath
+						+ "/PresentationLayer/JavaFx/email/src/view/EmailNotificationview.fxml",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ javaProjectName
+						+ "/src/view/EmailNotificationview.fxml");
+		copyTemplate(
+				templatePath
+						+ "/PresentationLayer/JavaFx/email/src/view/CustomerListview.ftl",
+				workspace.getRoot().getLocation().toString() + "/"
+						+ javaProjectName + "/src/view/CustomerListview.fxml",
+				data);
+
+	}
+
 	public void configure() throws CoreException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deconfigure() throws CoreException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -798,6 +5558,6 @@ public class CustomProjectNewWizard extends Wizard implements INewWizard,
 	@Override
 	public void setProject(IProject arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

@@ -7,7 +7,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Group;
 
 import com.hexaware.framework.logger.LogFactory;
@@ -54,18 +53,8 @@ public class PersistenceFrameworkSelectorWizard extends WizardPage {
 
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				if (btnJpa.getSelection() == true) {
-					log.debug("Selection of bntJpa--->>>"
-							+ btnJpa.getSelection());
-					MessageBox messageDialog = new MessageBox(getShell(),
-							SWT.OK);
-					messageDialog.setText("Alert!!");
-					messageDialog
-							.setMessage("It is under construction. Please select any other Persistence Framework.");
-					if (messageDialog.open() == SWT.OK) {
-						return;
-					}
-				}
+				getContainer().updateButtons();
+
 			}
 
 			@Override
@@ -74,10 +63,11 @@ public class PersistenceFrameworkSelectorWizard extends WizardPage {
 
 			}
 		});
-
+		
 		btnHibernate = new Button(grpPersistenceFramework, SWT.RADIO);
 		btnHibernate.setBounds(51, 88, 157, 16);
 		btnHibernate.setText("Hibernate");
+		btnHibernate.setSelection(true);
 		btnHibernate.addSelectionListener(new SelectionListener() {
 
 			@Override
@@ -97,7 +87,7 @@ public class PersistenceFrameworkSelectorWizard extends WizardPage {
 	@Override
 	public IWizardPage getNextPage() {
 		log.info("Inside getnext page of ApplicationFrameworkSelectorWizard");
-		if (btnHibernate.getSelection() == true) {
+		if (btnHibernate.getSelection() || btnJpa.getSelection()) {
 			return super.getNextPage();
 		}
 

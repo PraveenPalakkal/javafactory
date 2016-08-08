@@ -30,6 +30,27 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
       </key>
    </extension>
+   
+   
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="JSoftwareFactory.wizard.category"
+            name="HexJava Software Factory">
+      </category>
+      
+      <wizard
+            class="com.hexaware.jsoftwarefactory.plugin.wizards.CustomProjectNewWizard"
+            name="Create New HexJava Software Factory Project"
+            icon="icons/hex.png"
+            category="JSoftwareFactory.wizard.category"
+            id="JSoftwareFactory.wizard.new.custom"
+            project="true">         
+     </wizard>
+   </extension>
+   
+   
+   
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
@@ -87,5 +108,4 @@
     	</constraint>
   		</project-facet>
  	</extension>
-
 </plugin>

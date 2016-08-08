@@ -20,6 +20,32 @@ public class PresentationFrameworkSelectorWizard extends WizardPage {
 	private Combo comboWebAppFramework;
 	private Combo comboDesktopAppFramework;
 	private Combo comboMobileAppFramework;
+	private Button btnWebApplication;
+	private Button btnMobileApplication;
+	private Button btnDesktopApplication;
+	
+	/*
+	 * Getter and setter for components.
+	 */
+	public Button getBtnDesktopApplication() {
+		return btnDesktopApplication;
+	}
+
+	public Button getBtnWebApplication() {
+		return btnWebApplication;
+	}
+
+	public void setBtnWebApplication(Button btnWebApplication) {
+		this.btnWebApplication = btnWebApplication;
+	}
+
+	public Button getBtnMobileApplication() {
+		return btnMobileApplication;
+	}
+
+	public void setBtnMobileApplication(Button btnMobileApplication) {
+		this.btnMobileApplication = btnMobileApplication;
+	}
 
 	public Combo getComboWebAppFramework() {
 		return comboWebAppFramework;
@@ -53,10 +79,11 @@ public class PresentationFrameworkSelectorWizard extends WizardPage {
 		grpApplicationType.setText("Application Type");
 		grpApplicationType.setBounds(38, 71, 424, 185);
 
-		final Button btnWebApplication = new Button(grpApplicationType,
+		btnWebApplication = new Button(grpApplicationType,
 				SWT.RADIO);
 		btnWebApplication.setBounds(39, 42, 140, 24);
 		btnWebApplication.setEnabled(true);
+		btnWebApplication.setSelection(true);
 		btnWebApplication.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -71,7 +98,7 @@ public class PresentationFrameworkSelectorWizard extends WizardPage {
 		comboWebAppFramework.setItems(new String[] { "JSF", "Spring", "Struts",
 				"SPA-Angular JS" });
 		comboWebAppFramework.setText("Select");
-		comboWebAppFramework.setEnabled(false);
+		comboWebAppFramework.setEnabled(true);
 		comboWebAppFramework.addSelectionListener(new SelectionListener() {
 
 			@Override
@@ -87,7 +114,7 @@ public class PresentationFrameworkSelectorWizard extends WizardPage {
 			}
 		});
 
-		final Button btnDesktopApplication = new Button(grpApplicationType,
+		btnDesktopApplication = new Button(grpApplicationType,
 				SWT.RADIO);
 		btnDesktopApplication.setBounds(39, 94, 140, 16);
 		btnDesktopApplication.setEnabled(true);
@@ -114,8 +141,23 @@ public class PresentationFrameworkSelectorWizard extends WizardPage {
 				"Java Swing" });
 		comboDesktopAppFramework.setText("Select");
 		comboDesktopAppFramework.setEnabled(false);
+		comboDesktopAppFramework.addSelectionListener(new SelectionListener() {
 
-		final Button btnMobileApplication = new Button(grpApplicationType,
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				getContainer().updateButtons();
+
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
+
+		btnMobileApplication = new Button(grpApplicationType,
 				SWT.RADIO);
 		btnMobileApplication.setBounds(39, 139, 140, 16);
 		btnMobileApplication.setText("Mobile Application");
@@ -200,17 +242,7 @@ public class PresentationFrameworkSelectorWizard extends WizardPage {
 	public IWizardPage getNextPage() {
 		log.info("\nInside getnext page of PresentationTypeSelectorWizard");
 		log.debug("fm-->" + comboWebAppFramework.getText());
-		if (comboDesktopAppFramework.getText().equals("Java FX")
-				|| comboDesktopAppFramework.getText().equals("Java Swing")) {
-			log.debug("Inside getnext" + comboDesktopAppFramework.getText());
-			MessageBox messageDialog = new MessageBox(getShell(), SWT.OK);
-			messageDialog.setText("Alert!!");
-			messageDialog
-					.setMessage("It is under construction. Please select any other framework.");
-			if (messageDialog.open() == SWT.OK) {
-				return this;
-			}
-		} else if (comboMobileAppFramework.getText().equals("Android")
+		if (comboMobileAppFramework.getText().equals("Android")
 				|| comboMobileAppFramework.getText().equals("iOS")
 				|| comboMobileAppFramework.getText().equals("SPA-Angular JS")) {
 			log.debug("Inside getnext" + comboMobileAppFramework.getText());
@@ -222,11 +254,12 @@ public class PresentationFrameworkSelectorWizard extends WizardPage {
 				return this;
 			}
 		} else if ((comboWebAppFramework.getText().equals("SPA-Angular JS")
-				|| comboWebAppFramework.getText().equals("JSF") || comboWebAppFramework
-				.getText().equals("Spring") || comboWebAppFramework.getText().equals("Struts"))
-				&& comboDesktopAppFramework.getText().equals("Select")
+				|| comboWebAppFramework.getText().equals("JSF")
+				|| comboWebAppFramework.getText().equals("Spring")
+				|| comboWebAppFramework.getText().equals("Struts") || comboDesktopAppFramework
+				.getText().equals("Java FX") || comboDesktopAppFramework.getText().equals("Java Swing"))
 				&& comboMobileAppFramework.getText().equals("Select")) {
-			log.debug("Inside getnext" + comboWebAppFramework.getText());
+			log.debug("Inside getnext" + comboWebAppFramework.getText()+comboDesktopAppFramework.getText());
 			return super.getNextPage();
 		}
 		return null;

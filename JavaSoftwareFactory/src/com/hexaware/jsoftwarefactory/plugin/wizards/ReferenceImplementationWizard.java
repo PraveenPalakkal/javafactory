@@ -61,7 +61,7 @@ public class ReferenceImplementationWizard extends WizardPage {
 
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				if (btnNo.getSelection() == true) {
+				if (btnNo.getSelection()) {
 					MessageBox messageDialog = new MessageBox(getShell(),
 							SWT.OK);
 					messageDialog.setText("Alert!!");

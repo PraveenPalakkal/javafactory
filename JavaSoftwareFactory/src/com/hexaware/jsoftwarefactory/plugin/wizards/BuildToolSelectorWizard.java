@@ -51,7 +51,7 @@ public class BuildToolSelectorWizard extends WizardPage {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				if (btnMaven.getSelection() == true) {
+				if (btnMaven.getSelection()) {
 					MessageBox messageDialog = new MessageBox(getShell(), SWT.OK);
 					messageDialog.setText("Alert!!");
 					messageDialog
@@ -73,6 +73,7 @@ public class BuildToolSelectorWizard extends WizardPage {
 		btnAnt = new Button(grpBuildTool, SWT.RADIO);
 		btnAnt.setBounds(47, 94, 90, 16);
 		btnAnt.setEnabled(true);
+		btnAnt.setSelection(true);
 		btnAnt.setText("Ant");
 		btnAnt.addSelectionListener(new SelectionListener() {
 
@@ -93,7 +94,7 @@ public class BuildToolSelectorWizard extends WizardPage {
 	@Override
 	public IWizardPage getNextPage() {
 		log.info("\nInside getnext page of BuildToolSelectorWizard");
-		if (btnAnt.getSelection() == true) {
+		if (btnAnt.getSelection()) {
 			return super.getNextPage();
 		}
 

@@ -20,4 +20,7 @@ Bundle-ClassPath: lib/commons-io-1.2.jar,
  lib/freemarker.jar,
  lib/MobileFramework.jar,
  lib/HexLogger.jar,
- lib/log4j-1.2.14.jar
+ lib/log4j-1.2.14.jar,
+ lib/mysql-connector-java-5.1.15-bin.jar,
+ lib/ojdbc6.jar,
+ lib/sqljdbc4-4.0.jar

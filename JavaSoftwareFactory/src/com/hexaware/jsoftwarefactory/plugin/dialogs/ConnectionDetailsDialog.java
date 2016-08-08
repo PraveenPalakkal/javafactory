@@ -36,25 +36,25 @@ public class ConnectionDetailsDialog extends Dialog {
 		container.getShell().setText("Connection Details");
 		
 		Label lblNameOfUrl = new Label(container, SWT.NONE);
-		lblNameOfUrl.setBounds(30, 30, 385, 15);
-		lblNameOfUrl.setText("Server URL");
+		lblNameOfUrl.setBounds(20, 40, 70, 15);
+		lblNameOfUrl.setText("Server URL*  :");
 		
 		text = new Text(container, SWT.BORDER);
-		text.setBounds(30, 62, 385, 21);
+		text.setBounds(96, 31, 385, 27);
 		
 		Label lblPath = new Label(container, SWT.NONE);
-		lblPath.setBounds(60, 111, 125, 15);
-		lblPath.setText("User Name :");
+		lblPath.setBounds(136, 96, 96, 18);
+		lblPath.setText("User Name*  :");
 		
 		Label lblPortNo = new Label(container, SWT.NONE);
-		lblPortNo.setBounds(60, 163, 125, 15);
-		lblPortNo.setText("Password : ");
+		lblPortNo.setBounds(136, 157, 96, 18);
+		lblPortNo.setText("Password* : ");
 		
 		text_1 = new Text(container, SWT.BORDER);
-		text_1.setBounds(191, 108, 145, 21);
+		text_1.setBounds(238, 93, 145, 27);
 		
 		text_2 = new Text(container, SWT.BORDER);
-		text_2.setBounds(191, 160, 145, 21);
+		text_2.setBounds(238, 154, 145, 27);
 		text_2.setEchoChar(pass_char);
 
 		return container;
@@ -77,7 +77,7 @@ public class ConnectionDetailsDialog extends Dialog {
 	 */
 	@Override
 	protected Point getInitialSize() {
-		return new Point(450, 300);
+		return new Point(512, 291);
 	}
 
 }

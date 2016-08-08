@@ -24,6 +24,30 @@ public class CrosscuttingConcernsSelectorWizard extends WizardPage {
 	private Button btnInstrumentation;
 	private Button btnAuthenticationAutherization;
 
+	public Logger getLog() {
+		return log;
+	}
+
+	public Button getBtnNotification() {
+		return btnNotification;
+	}
+
+	public Button getBtnValidation() {
+		return btnValidation;
+	}
+
+	public Button getBtnCaching() {
+		return btnCaching;
+	}
+
+	public Button getBtnInstrumentation() {
+		return btnInstrumentation;
+	}
+
+	public Button getBtnAuthenticationAutherization() {
+		return btnAuthenticationAutherization;
+	}
+
 	/**
 	 * Create the wizard.
 	 */
@@ -46,11 +70,6 @@ public class CrosscuttingConcernsSelectorWizard extends WizardPage {
 		grpDefaultFeatures.setBounds(32, 50, 191, 236);
 
 		Button btnException = new Button(grpDefaultFeatures, SWT.CHECK);
-		btnException.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
 		btnException.setEnabled(false);
 		btnException.setSelection(true);
 		btnException.setBounds(43, 46, 93, 16);
@@ -72,11 +91,6 @@ public class CrosscuttingConcernsSelectorWizard extends WizardPage {
 		btnNotification.setText("Notification");
 
 		btnValidation = new Button(grpOptionalFeatures, SWT.CHECK);
-		btnValidation.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
 		btnValidation.setEnabled(true);
 		btnValidation.setBounds(48, 82, 141, 16);
 		btnValidation.setText("Validation");
@@ -98,11 +112,6 @@ public class CrosscuttingConcernsSelectorWizard extends WizardPage {
 				.setText("Role based Security with Forms Authentication and Authorization");
 
 		btnInstrumentation = new Button(grpOptionalFeatures, SWT.CHECK);
-		btnInstrumentation.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
 		btnInstrumentation.setText("Instrumentation");
 		btnInstrumentation.setBounds(48, 151, 141, 16);
 
@@ -111,21 +120,7 @@ public class CrosscuttingConcernsSelectorWizard extends WizardPage {
 	@Override
 	public IWizardPage getNextPage() {
 		log.info("\nInside getnext page of CrosscuttingConcernsSelectorWizard");
-		if (btnNotification.getSelection() == true
-				|| btnValidation.getSelection() == true
-				|| btnCaching.getSelection() == true
-				|| btnAuthenticationAutherization.getSelection() == true
-				|| btnInstrumentation.getSelection() == true) {
-			MessageBox messageDialog = new MessageBox(getShell(), SWT.OK);
-			messageDialog.setText("Alert!!");
-			messageDialog
-					.setMessage("It is under construction. Please deselect this feature to proceed further.");
-			if (messageDialog.open() == SWT.OK) {
-				return this;
-			}
-		} else {
-			return super.getNextPage();
-		}
-		return this;
+		return super.getNextPage();
 	}
+
 }
