@@ -1,0 +1,33 @@
+package com.app.customer.service;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+@Path(value = "/ws")
+public class ServiceController {
+
+	@GET
+	@Path(value = "/search")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String service(String serviceMethod){
+		if(serviceMethod.equalsIgnoreCase("Add")){
+			
+		}
+		else if(serviceMethod.equalsIgnoreCase("List")) {
+			
+		} 
+		else if(serviceMethod.equalsIgnoreCase("Delete")) {
+			
+		}
+		else if(serviceMethod.equalsIgnoreCase("Update")) {
+			
+		}
+		else if(serviceMethod.equalsIgnoreCase("Search")){
+			
+		}
+		
+		return "Success";
+	}
+}

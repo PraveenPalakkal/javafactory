@@ -1,0 +1,51 @@
+package com.app.customer.service;
+
+import java.util.ArrayList;
+
+import javax.jws.WebService;
+
+import com.app.customer.delegate.CustomerBusinessDelegate;
+import com.app.customer.util.BootStrapper;
+import com.app.customer.vo.Customer;
+import com.app.framework.exception.HexApplicationException;
+
+@WebService(endpointInterface = "com.app.customer.soap.service.CustomerService")
+public class SOAPService implements ICustomer {
+
+	CustomerBusinessDelegate delegate;
+	
+	public SOAPService(){
+		delegate = (CustomerBusinessDelegate) BootStrapper.getService().getBean("CustomerDelegate");
+	}
+	
+	@Override
+	public ArrayList<Customer> getAllCustomer() throws HexApplicationException {
+		
+		return (ArrayList<Customer>) delegate.getAllCustomer();
+	}
+
+	@Override
+	public String insert(Customer customer) throws HexApplicationException {
+		delegate.insert(customer);
+		return "Customer Added Successfully";
+	}
+
+	@Override
+	public String deleteAll(ArrayList<Customer> customers) throws HexApplicationException {
+		delegate.deleteAll(customers);
+		return "Customers deleted Successfully";
+	}
+
+	@Override
+	public String updateCustomer(Customer customer) throws HexApplicationException {
+		delegate.update(customer);
+		return "Customer Updated Successfully";
+	}
+
+	@Override
+	public ArrayList<Customer> searchCustomers(String fieldValue, String columnName) throws HexApplicationException {
+		
+		return (ArrayList<Customer>) delegate.search(fieldValue, columnName);
+	}
+
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy element &apos;CustomerBean.java&apos; to &apos;JSFSoap/src/com.app.customer.mbean&apos;&#x0D;&#x0A;- Original project: &apos;JSFSpring&apos;&#x0D;&#x0A;- Destination element: &apos;JSFSoap/src/com.app.customer.mbean&apos;&#x0D;&#x0A;- Original element: &apos;com.app.customer.mbean.CustomerBean.java&apos;" description="Copy compilation unit" destination="=JSFSoap/src&lt;com.app.customer.mbean" element1="/src&lt;com.app.customer.mbean{CustomerBean.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1464844349180" units="1" version="1.0"/>
+</session>

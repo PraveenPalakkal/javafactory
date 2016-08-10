@@ -1,0 +1,48 @@
+package com.app.customer.delegate;
+
+import com.app.customer.service.ICustomer;
+import com.app.customer.util.BootStrapper;
+import com.app.customer.vo.Customer;
+import com.app.framework.exception.HexApplicationException;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class CustomerBusinessDelegate implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3440828310386661784L;
+	private ICustomer customer;
+
+	public CustomerBusinessDelegate(){
+		customer = (ICustomer) BootStrapper.getService().getBean("CustomerService");
+	}
+
+
+	public String insert(Customer customer) throws HexApplicationException {
+		return this.customer.insert(customer);	
+	}
+
+	public String deleteAll(List<Customer> customers) throws HexApplicationException {
+		return this.customer.deleteAll(customers);
+	}
+
+	public String update(Customer customer) throws HexApplicationException {
+		return this.customer.update(customer);	
+	}
+
+
+	public List<Customer> getAllCustomer() throws HexApplicationException {
+		return this.customer.getAllCustomer();	
+	}
+
+	
+	public List<Customer> search(String fieldValue, String columnName) throws HexApplicationException {
+		return this.customer.search(fieldValue, columnName);	
+	}
+
+
+
+}
