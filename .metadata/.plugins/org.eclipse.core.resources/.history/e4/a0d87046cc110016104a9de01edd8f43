@@ -1,0 +1,202 @@
+package com.app.customer.delegate;
+
+import com.app.customer.vo.Customer;
+import com.app.framework.exception.HexApplicationException;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.io.Serializable;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+public class CustomerBusinessDelegate implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3440828310386661784L;
+	private String serverHost = "http://localhost:8080/";
+	private String serviceName = "JSFRest";
+	
+
+	public String insert(Customer customer) throws HexApplicationException {
+		String url = serverHost + serviceName + "/rest/ws/save";
+		String urlParameters = convertToJSON(customer).toJSONString();
+		return sendPost(url, urlParameters);
+	}
+
+	public String deleteAll(List<Customer> customers) throws HexApplicationException {
+		String url = serverHost + serviceName + "/rest/ws/delete";
+		JSONArray jsonArray = new JSONArray();
+		jsonArray.addAll(customers);
+		String urlParameters = jsonArray.toJSONString();
+		System.out.println(urlParameters);
+		return sendPost(url, urlParameters);
+	}
+
+	public String update(Customer customer) throws HexApplicationException {
+		String url = serverHost + serviceName + "/rest/ws/update";
+		String urlParameters = convertToJSON(customer).toJSONString();
+		return sendPost(url, urlParameters);
+	}
+
+	public List<Customer> getAllCustomer() throws HexApplicationException {
+		try {
+			String url = serverHost + serviceName + "/rest/ws/list";
+			return sendGet(url);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new HexApplicationException(e.getMessage());
+		}
+
+	}
+
+	public List<Customer> search(String fieldValue, String columnName) throws HexApplicationException {
+		try {
+			String url = serverHost + serviceName + "/rest/ws/search?searchValue=" + fieldValue + "&searchColumn=" + columnName;
+			return sendGet(url);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new HexApplicationException(e.getMessage());
+		}
+		
+	}
+
+	private List<Customer> sendGet(String url) throws Exception {
+
+		URL obj = new URL(url);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+		// optional default is GET
+		con.setRequestMethod("GET");
+
+		// add request header
+		con.setRequestProperty("User-Agent", "Mozilla/5.0");
+
+		int responseCode = con.getResponseCode();
+		System.out.println("\nSending 'GET' request to URL : " + url);
+		System.out.println("Response Code : " + responseCode);
+
+		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		String inputLine;
+		StringBuffer response = new StringBuffer();
+
+		while ((inputLine = in.readLine()) != null) {
+			response.append(inputLine);
+		}
+		in.close();
+
+		JSONParser parser = new JSONParser();
+		JSONArray responseOutput = (JSONArray) parser.parse(response.toString());
+		return ConvertJSONToList(responseOutput);
+
+	}
+
+	// HTTP POST request
+	private String sendPost(String url, String urlParameters) throws HexApplicationException {
+
+		try {
+			URL obj = new URL(url);
+			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+			// add reuqest header
+			con.setRequestMethod("POST");
+			con.setRequestProperty("User-Agent", "Mozilla/5.0");
+			con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+			con.setRequestProperty("Content-Type", "application/json");
+
+			// Send post request
+			con.setDoOutput(true);
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(urlParameters);
+			wr.flush();
+			wr.close();
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'POST' request to URL : " + url);
+			System.out.println("Response Code : " + responseCode);
+			System.out.println("Parameters : " + urlParameters);
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+
+			return response.toString();
+		} catch (Exception e) {
+			throw new HexApplicationException(e.getMessage());
+		}
+
+	}
+
+	private List<Customer> ConvertJSONToList(JSONArray jsonArray) {
+		List<Customer> customers = new ArrayList<>();
+		JSONObject jsonObject = null;
+		Customer customer = null;
+		for (int i = 0; i < jsonArray.size(); i++) {
+			jsonObject = (JSONObject) jsonArray.get(i);
+
+			customer = new Customer();
+			customer.setAction(jsonObject.get("action").toString());
+			customer.setAddress(jsonObject.get("address").toString());
+			customer.setCreatedby((String) jsonObject.get("createdby"));
+
+			String createdDate = String.valueOf(jsonObject.get("createddate"));
+			if (createdDate == null || createdDate.equalsIgnoreCase("null")) {
+				customer.setCreateddate(null);
+			} else {
+				customer.setCreateddate(new Date((long) jsonObject.get("createddate")));
+			}
+
+			customer.setCustomerid(Integer.parseInt(String.valueOf(jsonObject.get("customerid"))));
+			customer.setEmail(jsonObject.get("email").toString());
+			customer.setModifiedby((String) jsonObject.get("modifiedby"));
+
+			String modifiedDate = String.valueOf(jsonObject.get("modifieddate"));
+			if (modifiedDate == null || modifiedDate.equalsIgnoreCase("null")) {
+				customer.setModifieddate(null);
+			} else {
+				customer.setModifieddate(new Date((long) jsonObject.get("modifieddate")));
+			}
+
+			customer.setName(jsonObject.get("name").toString());
+			customer.setOrders(jsonObject.get("orders").toString());
+			customer.setPhone(jsonObject.get("phone").toString());
+			customers.add(customer);
+		}
+		return customers;
+	}
+
+	@SuppressWarnings("unchecked")
+	private JSONObject convertToJSON(Customer customer) {
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("customerid", customer.getCustomerid());
+		jsonObject.put("name", customer.getName());
+		jsonObject.put("email", customer.getEmail());
+		jsonObject.put("phone", customer.getPhone());
+		jsonObject.put("orders", customer.getOrders());
+		jsonObject.put("action", customer.getAction());
+		jsonObject.put("address", customer.getAddress());
+		jsonObject.put("createdby", customer.getCreatedby());
+		jsonObject.put("createddate", customer.getCreateddate());
+		jsonObject.put("modifiedby", customer.getModifiedby());
+		jsonObject.put("modifieddate", customer.getModifieddate());
+
+		return jsonObject;
+	}
+
+	
+
+}

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy 2 elements to &apos;JSFSoap/src&apos;&#x0D;&#x0A;- Original project: &apos;JSfRest&apos;&#x0D;&#x0A;- Destination element: &apos;JSFSoap/src&apos;&#x0D;&#x0A;- Original elements:&#x0D;&#x0A;     ApplicationResources_en.properties&#x0D;&#x0A;     ApplicationResources.properties" description="Copy files" destination="=JSFSoap/src" element1="src/ApplicationResources_en.properties" element2="src/ApplicationResources.properties" files="2" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1464844538695" units="0" version="1.0"/>
+</session>

@@ -1,0 +1,8 @@
+package com.app.customer.service;
+
+public class ServiceController {
+
+	public void service(String serviceMethod){
+		
+	}
+}

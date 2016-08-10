@@ -1,0 +1,49 @@
+package com.app.customer.util;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.app.customer.dao.CustomerDao;
+
+public class BootStrapper {
+
+  private static ApplicationContext aContext = null;
+
+  
+  /**
+   * Creates a new BootStrapper object.
+   */
+  private BootStrapper() {
+
+  }
+
+
+  /**
+   * This method
+   *
+   * @return org.springframework.context.ApplicationContext
+   */
+  public synchronized static ApplicationContext getService() {
+
+      if (aContext == null) {
+
+      try {
+    		 
+
+    		  ApplicationContext aContext = new ClassPathXmlApplicationContext("/applicationContext.xml");
+    		//  CustomerDao customerDao = (CustomerDao) BootStrapper.getService().getBean("customerServiceProxy");
+    	 /* CustomerDao aContext = (CustomerDao) appContext.getBean("customerServiceProxy");*/
+    		/*System.out.println("*************************");
+    		cust.printMessage();
+    		cust.getDetails();*/
+
+       
+      } catch (Exception exception) {
+
+        exception.printStackTrace();
+      }
+    }   
+
+    return aContext;
+  }
+}
