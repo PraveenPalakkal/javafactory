@@ -1,3 +1,0 @@
-#Tomcat publish data
-#Thu May 26 17:09:04 IST 2016
-org.eclipse.jst.jee.server\:/binary\:D\:\\Jeffer\\WorkSpaces\\runtime-EclipseApplication\\JSFApp\\WebContent\\WEB-INF\\lib\\HJSF-Framework.jar=WEB-INF/lib/HJSF-Framework.jar
