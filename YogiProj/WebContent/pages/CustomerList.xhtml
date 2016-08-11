@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://java.sun.com/jsf/facelets">
+<h:head>
+	<link type="text/css" rel="stylesheet"
+		href="#{request.contextPath}/css/style.css" />
+	<title><h:outputText value="#{msgs.CUSTOMER_PAGE_TITLE}" /></title>
+	<script>
+		function confirmDelete() {
+			return confirm(' do you want to delete the selected row?');
+		}
+		function validateSearch() {
+			if (document.forms["customerForm"].elements["customerForm:searchfield"].value.length == 0) {
+				alert('Please enter the value');
+				document.forms["customerForm"].elements["customerForm:searchfield"]
+						.focus();
+				return false;
+			}
+
+			if (document.forms["customerForm"].elements["customerForm:select"].value == '--Select the field--') {
+				alert('Please choose any one option');
+				document.forms["customerForm"].elements["customerForm:select"]
+						.focus();
+				return false;
+			}
+			return true;
+		}
+		function validateClear() {
+
+			document.forms["customerForm"].elements["customerForm:searchfield"].value = "";
+			document.forms["customerForm"].elements["customerForm:select"].value = '--Select the field--';
+			return true;
+		}
+	</script>
+	<style>
+.ui-paginator {
+	margin: 1px !important;
+	text-align: center;
+	padding: 2px;
+}
+
+</style>
+</h:head>
+<h:body>
+	<f:view contentType="text/html">
+		<f:loadBundle basename="ApplicationResources" var="msgs" />
+		<h:form id="customerForm">
+
+
+			<div class="mainwrapper">
+				<ui:include src="leftMenu.xhtml" />
+
+
+				<div id="div1" class="rightcolumn">
+					<div class="breadcrumb">
+						<div class="breadcrumbtext">
+							<h:outputText value="#{msgs.CUSTOMER_PAGE_TITLE}-List" />
+
+						</div>
+						<p:spacer width="100" height="10" />
+
+
+
+						<p:panel>
+							<!--<f:facet name="header">
+        <center><h:outputText value="#{msgs.CUSTOMER_PAGE_TITLE}" /></center>
+        </f:facet>-->
+
+							<h:panelGrid columns="3">
+								<h:panelGroup>
+									<b><p:inputText id="searchfield"
+											value="#{customerBean.fieldValue}" /></b>
+								</h:panelGroup>
+
+								<h:panelGroup>
+									<h:selectOneMenu id="select"
+										value="#{customerBean.columnValue}">
+										<f:selectItems id="selectItem"
+											value="#{customerBean.columnNameList}" var="c"
+											itemValue="#{c}" />
+									</h:selectOneMenu>
+								</h:panelGroup>
+								<h:panelGroup>
+									<p:commandButton id="btnSearch" action="#{customerBean.search}"
+										value="SEARCH" onclick="return validateSearch();" ajax="false" />
+
+									<h:outputText value="&#160;" />
+									<p:commandButton id="btnClear" actionListener="#{customerBean.initialiseList}"
+										value="Clear"  ajax="false" />
+								</h:panelGroup>
+							</h:panelGrid>
+							<h:outputText value="&#160;" />
+							<p:messages for="customerForm" style="color:red;" />
+							<p:dataTable value="#{customerBean.customerList}"
+								var="customerRow" paginator="true" rows="10"
+								paginatorPosition="bottom"
+								paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+								rowClasses="row1, row2" id="productList">
+
+								<!--  <f:facet name="header">
+                <h:outputText value="#{msgs.CUSTOMER_LIST_PAGE_TITLE}"/>
+            </f:facet>-->
+								<p:column>
+									<f:facet name="header">
+										<b> <h:outputText value="#{msgs.CUSTOMER_CUSTOMERID}" />
+										</b>
+									</f:facet>
+									<p:commandLink action="#{customerBean.select(customerRow)}" ajax="false">
+										<h:outputText value="#{customerRow.customerid}" />
+									</p:commandLink>
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<b> <h:outputText value="#{msgs.CUSTOMER_NAME}" />
+										</b>
+									</f:facet>
+									<h:outputText value="#{customerRow.name}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<b> <h:outputText value="#{msgs.CUSTOMER_EMAIL}" />
+										</b>
+									</f:facet>
+									<h:outputText value="#{customerRow.email}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<b> <h:outputText value="#{msgs.CUSTOMER_PHONE}" />
+										</b>
+									</f:facet>
+									<h:outputText value="#{customerRow.phone}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<b> <h:outputText value="#{msgs.CUSTOMER_ADDRESS}" />
+										</b>
+									</f:facet>
+									<h:outputText value="#{customerRow.address}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<b> <h:outputText value="#{msgs.CUSTOMER_ORDERS}" />
+										</b>
+									</f:facet>
+									<h:outputText value="#{customerRow.orders}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<b> <h:outputText value="#{msgs.CUSTOMER_ACTION}" />
+										</b>
+									</f:facet>
+									<h:outputText value="#{customerRow.action}" />
+								</p:column>
+								<h:inputHidden value="#{msgs.CUSTOMER_CREATEDDATE}" />
+								<h:inputHidden value="#{customerRow.createddate}" />
+								<h:inputHidden value="#{msgs.CUSTOMER_CREATEDBY}" />
+								<h:inputHidden value="#{customerRow.createdby}" />
+								<h:inputHidden value="#{msgs.CUSTOMER_MODIFIEDDATE}" />
+								<h:inputHidden value="#{customerRow.modifieddate}" />
+								<h:inputHidden value="#{msgs.CUSTOMER_MODIFIEDBY}" />
+								<h:inputHidden value="#{customerRow.modifiedby}" />
+
+
+
+								<p:column>
+									<f:facet name="header">
+										<h:outputLabel value="#{msgs.CUSTOMER_CAPTION_DELETE}" />
+									</f:facet>
+									<h:selectBooleanCheckbox style="align:center" id="delete"
+										value="#{customerRow.toBeDeleted}"
+										onclick="chkBoxStateChanged(this);" />
+								</p:column>
+
+							</p:dataTable>
+							
+								<h:panelGrid columns="3" 
+									style="text-align: right;width :30px">
+									<h:panelGroup>
+										<p:commandButton id="btnAdd" 
+											action="#{customerBean.add}"
+											value="#{msgs.CUSTOMER_BUTTON_ADD}" ajax="false" />
+									</h:panelGroup>
+									<h:panelGroup>
+										<p:commandButton id="btnDelete" 
+											action="#{customerBean.delete}"
+											value="#{msgs.CUSTOMER_BUTTON_DELETE}"
+											onclick="return confirmDelete();" ajax="false" />
+									</h:panelGroup>
+<h:panelGroup>
+									<p:commandButton id="email" 
+											action="#{customerBean.emial}" rendered="#{customerBean.showEmailbutton}"
+											value="email"
+											 ajax="false" />
+											 </h:panelGroup>
+
+								</h:panelGrid>
+							
+
+							<!--<h5 align="right"><a href ="Home.xhtml">Home</a></h5>-->
+						</p:panel>
+
+					</div>
+				</div>
+			</div>
+		</h:form>
+
+	</f:view>
+</h:body>
+
+</html>
+
+
