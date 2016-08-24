@@ -21,8 +21,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import com.app.customer.validation.Validation; import com.hjsf.validator.HexValidationException;
 
-import com.hex.framework.mail.exception.MailingException; import com.hex.framework.mail.MailingImpl; import com.hex.framework.mail.vo.MailVO; import java.util.Locale; import java.util.ResourceBundle; import org.apache.commons.validator.routines.EmailValidator;
-import com.app.customer.vo.EmailVo;
+
+
 
 import javax.faces.application.FacesMessage;
 
@@ -76,7 +76,7 @@ public boolean isShowEmailbutton() {
 	private String businessDelegateURL;
 	private String referer = null;
 	private String webServiceReferer = null;
-	private EmailVo email; public EmailVo getEmail() {return email; } public void setEmail(EmailVo email) {this.email = email;}
+	
 	public CustomerBean() {
 		log.debug("Inside CustomerBean Constructor..");
 		columnNameList = new ArrayList<>();
@@ -85,7 +85,7 @@ public boolean isShowEmailbutton() {
 		for (Field field : fieldList)
 			columnNameList.add(field.getName());
 		customer = new Customer();
-		email=new EmailVo(); setShowEmailbutton(true);
+		
 		//delegate = new CustomerBusinessDelegate();
 		initialiseList();
 		log.debug("End of CustomerBean Constructor..");
@@ -467,5 +467,5 @@ return null;
 	public void setColumnNameList(List<String> columnNameList) {
 		this.columnNameList = columnNameList;
 	}
-public void emial() throws IOException { FacesContext.getCurrentInstance().renderResponse(); FacesContext.getCurrentInstance().getExternalContext().redirect("Email.xhtml"); }  public String sendEmail() throws IOException { ResourceBundle bundle = ResourceBundle.getBundle("MailServerCridencials",Locale.ENGLISH); 	FacesContext facesContext=FacesContext.getCurrentInstance(); String from="";  String subject=""; String message="";   MailVO mailVO = new MailVO(); EmailValidator emailValidator = EmailValidator.getInstance();  String[] to = email.getTo().split(";"); if(!emailValidation(to).equals("failed"))  mailVO.setTos(to); else { facesContext.addMessage(null,new FacesMessage("Please enter To address") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return "Email.xhtml?faces-redirect=true";}  String[] cc = email.getCc().split(";"); if(!"".equals(cc[0]))if(!emailValidation(cc).equals("failed"))  mailVO.setCcs(cc); else{ facesContext.addMessage(null,new FacesMessage("Please enter Cc address") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return "Email.xhtml?faces-redirect=true";	} String[] bc = email.getBc().split(";"); if(!"".equals(bc[0])) if(!emailValidation(bc).equals("failed")) 	mailVO.setBccs(bc); else{ facesContext.addMessage(null,new FacesMessage("Please enter Bc address") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return "Email.xhtml?faces-redirect=true";	} if(!emailValidator.isValid(email.getFrom())) { facesContext.addMessage(null,new FacesMessage("Please enter From address") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return "Email.xhtml?faces-redirect=true";	} else{ mailVO.setFrom(email.getFrom()); }  String host=bundle.getString("SEVER_HOST");		int port=Integer.parseInt(bundle.getString("SEVER_PORT"));  mailVO.setSubject(email.getSub());  mailVO.setBody(email.getMeg()); mailVO.setHost(host);	 mailVO.setPort(port); try { new MailingImpl().sendEmail(mailVO); FacesContext.getCurrentInstance().getExternalContext().redirect("CustomerList.xhtml");  }	catch (Exception e) {  facesContext.addMessage(null,new FacesMessage("Please enter Valid address") ); facesContext.getExternalContext().getFlash().setKeepMessages(true);  return "Email.xhtml?faces-redirect=true";	 } return null; } private String emailValidation(String[] email){ EmailValidator emailValidator = EmailValidator.getInstance(); for(int i=0;i<email.length;i++){  if(!emailValidator.isValid(email[i])) return "failed"; } return "success"; }
+
 }
